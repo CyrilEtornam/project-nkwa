@@ -1,0 +1,558 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Text-To-Speech API",
+        "description": "Synthesizes text into audio across 32 supported languages and dialects.\n\nLanguage codes are ISO 639-3 (three letters), as returned by GET /languages. Pass these codes directly as the `language` field in POST /synthesize.\n\nSome languages have separate codes for distinct dialects rather than sharing one code - for example Akuapem Twi (`atw`) and Asante Twi (`twi`), or Konkomba Likpakpaanl (`xon`) and Konkomba Likoonli (`lxn`). These are not aliases for each other; each routes to its own voice model.\n\nOlder two-letter codes used before this scheme (e.g. `tw`, `ee`) are no longer accepted. A request using one of these returns a 400 response naming the ISO 639-3 code to use instead.",
+        "version": "v2"
+    },
+    "servers": [
+        {
+            "url": "https://translation-api.ghananlp.org/tts/v2"
+        }
+    ],
+    "paths": {
+        "/languages": {
+            "get": {
+                "tags": [
+                    "Languages & Speakers"
+                ],
+                "summary": "Get list of all supported languages",
+                "description": "Returns the supported languages as a map of display name to ISO 639-3 code. Use these codes as the `language` value in POST /synthesize.",
+                "operationId": "get-list-of-all-supported-languages",
+                "responses": {
+                    "200": {
+                        "description": "List of languages supported",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Language_listing"
+                                },
+                                "example": {
+                                    "languages": {
+                                        "Dangme": "ada",
+                                        "Akuapem Twi": "atw",
+                                        "Asante Twi": "twi",
+                                        "Dagbani": "dag",
+                                        "Dagaare": "dga",
+                                        "Ewe": "ewe",
+                                        "English": "eng",
+                                        "Fante": "fat",
+                                        "French": "fra",
+                                        "Ga": "gaa",
+                                        "Gonja": "gjn",
+                                        "Gurene": "gur",
+                                        "Hausa": "hau",
+                                        "Igbo": "ibo",
+                                        "Kasem": "xsm",
+                                        "Kikuyu": "kik",
+                                        "Konkomba (Likpakpaanl)": "xon",
+                                        "Konkomba (Likoonli)": "lxn",
+                                        "Krio": "kri",
+                                        "Kusaal": "kus",
+                                        "Luo": "luo",
+                                        "Mampruli": "maw",
+                                        "Mende": "men",
+                                        "Meru/Kimeru": "mer",
+                                        "Nzema": "nzi",
+                                        "Pidgin": "pcm",
+                                        "Shona": "sna",
+                                        "Swahili": "swa",
+                                        "Temne": "tem",
+                                        "Wali": "wlx",
+                                        "Wolof": "wol",
+                                        "Yoruba": "yor"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/speakers": {
+            "get": {
+                "tags": [
+                    "Languages & Speakers"
+                ],
+                "summary": "Get list of all available speakers",
+                "description": "Returns the speaker IDs available for synthesis. The same set of speakers is available for every supported language.",
+                "operationId": "get-list-of-all-available-speakers",
+                "responses": {
+                    "200": {
+                        "description": "A listing of available speakers",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Speakers_listing"
+                                },
+                                "example": {
+                                    "speakers": {
+                                        "Multilingual": [
+                                            "male_low",
+                                            "male_high",
+                                            "female"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/synthesize": {
+            "post": {
+                "tags": [
+                    "Synthesis"
+                ],
+                "summary": "Synthesize text",
+                "description": "Converts `text` into audio using the given `language` and, optionally, `speaker_id`. The response is returned in the format requested via `format` (default `wav`). When `stream` is `true` and `format` is `wav` or `mp3`, the response is streamed as audio is generated and `Content-Length` is omitted.",
+                "operationId": "67b9c893fc03f0ed64272f2e",
+                "requestBody": {
+                    "description": "Get supported languages and speaker IDs from GET /languages and GET /speakers.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TTS_JSON_Request"
+                            },
+                            "example": {
+                                "text": "Ɛte sɛn?",
+                                "language": "twi",
+                                "speaker_id": "male_low",
+                                "stream": true,
+                                "format": "wav"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Synthesized audio. Content-Type matches the requested `format` (`audio/wav`, `audio/mp3`, or `audio/ogg`). When the response is streamed, `Content-Length` is omitted and `Cache-Control: no-cache, no-store, no-transform` is set.",
+                        "content": {
+                            "audio/wav": {},
+                            "audio/mp3": {},
+                            "audio/ogg": {}
+                        }
+                    },
+                    "400": {
+                        "description": "The request could not be validated. `error.details` contains one entry per invalid field.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/API_error_response"
+                                },
+                                "examples": {
+                                    "invalid_field": {
+                                        "summary": "A field failed schema validation, e.g. an unrecognised format value",
+                                        "value": {
+                                            "error": {
+                                                "code": "VALIDATION_FAILED",
+                                                "message": "The request payload contains invalid parameters.",
+                                                "details": [
+                                                    {
+                                                        "code": "INVALID_REQUEST",
+                                                        "message": "Input should be 'wav', 'mp3' or 'ogg'",
+                                                        "target": "format"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "empty_text": {
+                                        "summary": "text is whitespace only",
+                                        "value": {
+                                            "error": {
+                                                "code": "VALIDATION_FAILED",
+                                                "message": "The request payload contains invalid parameters.",
+                                                "details": [
+                                                    {
+                                                        "code": "EMPTY_TEXT",
+                                                        "message": "Input text is empty",
+                                                        "target": "text"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "missing_language": {
+                                        "summary": "language is an empty string",
+                                        "value": {
+                                            "error": {
+                                                "code": "VALIDATION_FAILED",
+                                                "message": "The request payload contains invalid parameters.",
+                                                "details": [
+                                                    {
+                                                        "code": "MISSING_LANGUAGE",
+                                                        "message": "No language selected, synthesis cannot be performed!",
+                                                        "target": "language"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "unsupported_language": {
+                                        "summary": "language is not a recognised ISO 639-3 code",
+                                        "value": {
+                                            "error": {
+                                                "code": "VALIDATION_FAILED",
+                                                "message": "The request payload contains invalid parameters.",
+                                                "details": [
+                                                    {
+                                                        "code": "UNSUPPORTED_LANGUAGE",
+                                                        "message": "Language xyz cannot be used",
+                                                        "target": "language"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "legacy_language_code": {
+                                        "summary": "language uses a pre-ISO 639-3 code that has a known replacement",
+                                        "value": {
+                                            "error": {
+                                                "code": "VALIDATION_FAILED",
+                                                "message": "The request payload contains invalid parameters.",
+                                                "details": [
+                                                    {
+                                                        "code": "UNSUPPORTED_LANGUAGE",
+                                                        "message": "Language 'tw' is not supported. Use 'twi' instead.",
+                                                        "target": "language"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "invalid_speaker": {
+                                        "summary": "speaker_id is not available for the requested language",
+                                        "value": {
+                                            "error": {
+                                                "code": "VALIDATION_FAILED",
+                                                "message": "The request payload contains invalid parameters.",
+                                                "details": [
+                                                    {
+                                                        "code": "INVALID_SPEAKER",
+                                                        "message": "Speaker 'invalid_speaker' not found. Available speakers are ['male_low', 'male_high', 'female']",
+                                                        "target": "speaker_id"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred while processing the request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/API_error_response"
+                                },
+                                "example": {
+                                    "error": {
+                                        "code": "SYSTEM_ERROR",
+                                        "message": "An unexpected error occurred while processing the request.",
+                                        "details": []
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Speakers_listing": {
+                "type": "object",
+                "properties": {
+                    "speakers": {
+                        "type": "object",
+                        "properties": {
+                            "Multilingual": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "Speaker IDs available for use with any supported language. Pass one of these as `speaker_id` in POST /synthesize."
+                            }
+                        },
+                        "description": "Available speaker IDs grouped by language family. All 32 supported languages share the same voice set."
+                    }
+                },
+                "x-apim-schema-name": "Speakers listing"
+            },
+            "Language_listing": {
+                "type": "object",
+                "properties": {
+                    "languages": {
+                        "type": "object",
+                        "properties": {
+                            "Dangme": {
+                                "type": "string"
+                            },
+                            "Akuapem Twi": {
+                                "type": "string"
+                            },
+                            "Asante Twi": {
+                                "type": "string"
+                            },
+                            "Dagbani": {
+                                "type": "string"
+                            },
+                            "Dagaare": {
+                                "type": "string"
+                            },
+                            "Ewe": {
+                                "type": "string"
+                            },
+                            "English": {
+                                "type": "string"
+                            },
+                            "Fante": {
+                                "type": "string"
+                            },
+                            "French": {
+                                "type": "string"
+                            },
+                            "Ga": {
+                                "type": "string"
+                            },
+                            "Gonja": {
+                                "type": "string"
+                            },
+                            "Gurene": {
+                                "type": "string"
+                            },
+                            "Hausa": {
+                                "type": "string"
+                            },
+                            "Igbo": {
+                                "type": "string"
+                            },
+                            "Kasem": {
+                                "type": "string"
+                            },
+                            "Kikuyu": {
+                                "type": "string"
+                            },
+                            "Konkomba (Likpakpaanl)": {
+                                "type": "string"
+                            },
+                            "Konkomba (Likoonli)": {
+                                "type": "string"
+                            },
+                            "Krio": {
+                                "type": "string"
+                            },
+                            "Kusaal": {
+                                "type": "string"
+                            },
+                            "Luo": {
+                                "type": "string"
+                            },
+                            "Mampruli": {
+                                "type": "string"
+                            },
+                            "Mende": {
+                                "type": "string"
+                            },
+                            "Meru/Kimeru": {
+                                "type": "string"
+                            },
+                            "Nzema": {
+                                "type": "string"
+                            },
+                            "Pidgin": {
+                                "type": "string"
+                            },
+                            "Shona": {
+                                "type": "string"
+                            },
+                            "Swahili": {
+                                "type": "string"
+                            },
+                            "Temne": {
+                                "type": "string"
+                            },
+                            "Wali": {
+                                "type": "string"
+                            },
+                            "Wolof": {
+                                "type": "string"
+                            },
+                            "Yoruba": {
+                                "type": "string"
+                            }
+                        },
+                        "description": "Display name to ISO 639-3 code."
+                    }
+                },
+                "x-apim-schema-name": "Language listing"
+            },
+            "TTS_JSON_Request": {
+                "required": [
+                    "text",
+                    "language"
+                ],
+                "type": "object",
+                "properties": {
+                    "text": {
+                        "minLength": 1,
+                        "type": "string",
+                        "description": "Text to synthesize, in the language given by `language`."
+                    },
+                    "language": {
+                        "enum": [
+                            "ada",
+                            "atw",
+                            "twi",
+                            "dag",
+                            "dga",
+                            "ewe",
+                            "eng",
+                            "fat",
+                            "fra",
+                            "gaa",
+                            "gjn",
+                            "gur",
+                            "hau",
+                            "ibo",
+                            "xsm",
+                            "kik",
+                            "xon",
+                            "lxn",
+                            "kri",
+                            "kus",
+                            "luo",
+                            "maw",
+                            "men",
+                            "mer",
+                            "nzi",
+                            "pcm",
+                            "sna",
+                            "swa",
+                            "tem",
+                            "wlx",
+                            "wol",
+                            "yor"
+                        ],
+                        "type": "string",
+                        "description": "ISO 639-3 code identifying the language and dialect of `text`. See GET /languages for the full list and for dialect-specific codes (e.g. atw vs twi, xon vs lxn)."
+                    },
+                    "speaker_id": {
+                        "enum": [
+                            "male_low",
+                            "male_high",
+                            "female"
+                        ],
+                        "type": "string",
+                        "description": "Voice to use for synthesis. If omitted, a default voice for `language` is used. See GET /speakers."
+                    },
+                    "stream": {
+                        "type": "boolean",
+                        "description": "If true and `format` is wav or mp3, the response is streamed as audio is generated.",
+                        "default": false
+                    },
+                    "format": {
+                        "enum": [
+                            "wav",
+                            "mp3",
+                            "ogg"
+                        ],
+                        "type": "string",
+                        "description": "Audio format of the response.",
+                        "default": "wav"
+                    }
+                },
+                "example": {
+                    "text": "Wo ho te sɛn?",
+                    "language": "twi",
+                    "speaker_id": "male_low",
+                    "stream": true,
+                    "format": "wav"
+                },
+                "x-apim-schema-name": "TTS JSON Request"
+            },
+            "API_error_detail": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "Machine-readable code identifying the specific validation failure, e.g. MISSING_LANGUAGE, UNSUPPORTED_LANGUAGE, INVALID_SPEAKER, EMPTY_TEXT, INVALID_REQUEST."
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "target": {
+                        "type": "string",
+                        "description": "Name of the request field this error relates to.",
+                        "nullable": true
+                    }
+                },
+                "x-apim-schema-name": "API error detail"
+            },
+            "API_error": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "VALIDATION_FAILED for 400 responses, SYSTEM_ERROR for 500 responses."
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "details": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/API_error_detail"
+                        },
+                        "description": "One entry per invalid field. Empty for 500 responses."
+                    }
+                },
+                "x-apim-schema-name": "API error"
+            },
+            "API_error_response": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "$ref": "#/components/schemas/API_error"
+                    }
+                },
+                "x-apim-schema-name": "API error response"
+            }
+        },
+        "securitySchemes": {
+            "apiKeyHeader": {
+                "type": "apiKey",
+                "name": "Ocp-Apim-Subscription-Key",
+                "in": "header"
+            },
+            "apiKeyQuery": {
+                "type": "apiKey",
+                "name": "subscription-key",
+                "in": "query"
+            }
+        }
+    },
+    "security": [
+        {
+            "apiKeyHeader": []
+        },
+        {
+            "apiKeyQuery": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Languages & Speakers",
+            "description": "Discover supported languages and available voices."
+        },
+        {
+            "name": "Synthesis",
+            "description": "Convert text into spoken audio."
+        }
+    ]
+}

@@ -1,0 +1,317 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Translation API",
+        "description": "Translates text between Ghanaian and African languages.\n\nThe `lang` field takes a hyphen-separated source–target pair using ISO 639-3 codes (e.g. `eng-twi`). Use GET /languages to retrieve the full list of supported codes.\n\nPre-ISO 639-3 two-letter codes (`en`, `tw`, `ee`, `yo`, `ki`) are no longer accepted. Requests using deprecated codes receive a 400 with `UNSUPPORTED_LANGUAGE_CODE` in `error.details`, naming the rejected code and its ISO 639-3 replacement.",
+        "termsOfService": "https://www.khaya.ai/terms-and-conditions",
+        "contact": {
+            "name": "Khaya A.I",
+            "url": "https://khaya.ai/",
+            "email": "subscriptions@khaya.ai"
+        },
+        "license": {
+            "name": "End User License Agreement (EULA)",
+            "url": "https://www.khaya.ai/terms-and-conditions"
+        },
+        "version": "v2"
+    },
+    "servers": [
+        {
+            "url": "https://translation-api.ghananlp.org/v2"
+        }
+    ],
+    "paths": {
+        "/translate": {
+            "post": {
+                "summary": "Translate text",
+                "description": "Translates the input text from the source language to the target language specified by `lang`. Both source and target must be ISO 639-3 codes.",
+                "operationId": "post-translate",
+                "requestBody": {
+                    "description": "The text to translate and the language pair. Use GET /languages for supported codes.",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TranslateRequest"
+                            },
+                            "example": {
+                                "in": "Hello, how are you?",
+                                "lang": "eng-twi"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The translated text.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TranslationResponse"
+                                },
+                                "example": "Wo ho te sɛn?"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error. Returned when the request body is malformed, references an unsupported language pair, or `lang` uses a deprecated (pre-ISO 639-3) language code.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "error": {
+                                        "code": "VALIDATION_FAILED",
+                                        "message": "The request payload contains invalid parameters.",
+                                        "details": [
+                                            {
+                                                "code": "UNSUPPORTED_LANGUAGE_CODE",
+                                                "target": "source_language",
+                                                "message": "'en' is not a valid language code. Use the ISO 639-3 code 'eng' instead."
+                                            },
+                                            {
+                                                "code": "UNSUPPORTED_LANGUAGE_CODE",
+                                                "target": "target_language",
+                                                "message": "'tw' is not a valid language code. Use the ISO 639-3 code 'twi' instead."
+                                            }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred while processing the request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "error": {
+                                        "code": "SYSTEM_ERROR",
+                                        "message": "An unexpected error occurred while processing the request.",
+                                        "details": []
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/languages": {
+            "get": {
+                "summary": "Get supported languages",
+                "description": "Returns the languages available for translation as a map of ISO 639-3 code to display name. Use these codes to construct the `lang` field in POST /translate.",
+                "operationId": "get-languages-list",
+                "responses": {
+                    "200": {
+                        "description": "Map of ISO 639-3 language codes to display names.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LanguageListing"
+                                },
+                                "example": {
+                                    "languages": {
+                                        "eng": "English",
+                                        "twi": "Twi",
+                                        "ewe": "Ewe",
+                                        "gaa": "Ga",
+                                        "fat": "Fante",
+                                        "yor": "Yoruba",
+                                        "dag": "Dagbani",
+                                        "kik": "Kikuyu",
+                                        "gur": "Gurene",
+                                        "luo": "Luo",
+                                        "mer": "Kimeru",
+                                        "kus": "Kusaal"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An unexpected error occurred while processing the request.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                },
+                                "example": {
+                                    "error": {
+                                        "code": "SYSTEM_ERROR",
+                                        "message": "An unexpected error occurred while processing the request.",
+                                        "details": []
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "TranslateRequest": {
+                "required": [
+                    "in",
+                    "lang"
+                ],
+                "type": "object",
+                "properties": {
+                    "in": {
+                        "maxLength": 1000,
+                        "type": "string",
+                        "description": "Text to translate. Maximum 1000 characters."
+                    },
+                    "lang": {
+                        "type": "string",
+                        "description": "Language pair in source-target format using ISO 639-3 codes, e.g. `eng-twi`. Pre-ISO 639-3 codes (`en`, `tw`, `ee`, `yo`, `ki`) are no longer accepted."
+                    }
+                },
+                "example": {
+                    "in": "Hello, how are you?",
+                    "lang": "eng-twi"
+                }
+            },
+            "TranslationResponse": {
+                "type": "string",
+                "description": "The translated text."
+            },
+            "LanguageListing": {
+                "type": "object",
+                "properties": {
+                    "languages": {
+                        "type": "object",
+                        "properties": {
+                            "eng": {
+                                "type": "string"
+                            },
+                            "twi": {
+                                "type": "string"
+                            },
+                            "ewe": {
+                                "type": "string"
+                            },
+                            "gaa": {
+                                "type": "string"
+                            },
+                            "fat": {
+                                "type": "string"
+                            },
+                            "yor": {
+                                "type": "string"
+                            },
+                            "dag": {
+                                "type": "string"
+                            },
+                            "kik": {
+                                "type": "string"
+                            },
+                            "gur": {
+                                "type": "string"
+                            },
+                            "luo": {
+                                "type": "string"
+                            },
+                            "mer": {
+                                "type": "string"
+                            },
+                            "kus": {
+                                "type": "string"
+                            }
+                        },
+                        "description": "Map of ISO 639-3 language code to display name."
+                    }
+                }
+            },
+            "ErrorDetail": {
+                "required": [
+                    "code",
+                    "message"
+                ],
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "Machine-readable validation issue code, e.g. UNSUPPORTED_LANGUAGE_CODE, UNSUPPORTED_LANGUAGE_PAIR, MISSING_TEXT, MISSING_LANGUAGE_PAIR."
+                    },
+                    "target": {
+                        "type": "string",
+                        "description": "Field that failed validation, e.g. source_language, target_language, text, language_pair.",
+                        "x-nullable": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable description of this specific validation failure."
+                    }
+                }
+            },
+            "ErrorBody": {
+                "required": [
+                    "code",
+                    "message",
+                    "details"
+                ],
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "string",
+                        "description": "VALIDATION_FAILED for 400 responses, SYSTEM_ERROR for 500 responses."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Human-readable summary of the error."
+                    },
+                    "details": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ErrorDetail"
+                        },
+                        "description": "One entry per invalid field. Empty for 500 responses."
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "required": [
+                    "error"
+                ],
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "$ref": "#/components/schemas/ErrorBody"
+                    }
+                }
+            }
+        },
+        "securitySchemes": {
+            "apiKeyHeader": {
+                "type": "apiKey",
+                "name": "Ocp-Apim-Subscription-Key",
+                "in": "header"
+            },
+            "apiKeyQuery": {
+                "type": "apiKey",
+                "name": "subscription-key",
+                "in": "query"
+            }
+        }
+    },
+    "security": [
+        {
+            "apiKeyHeader": []
+        },
+        {
+            "apiKeyQuery": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Translation Controller",
+            "description": "Everything about API translation"
+        }
+    ]
+}

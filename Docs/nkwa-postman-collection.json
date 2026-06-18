@@ -1,0 +1,687 @@
+{
+  "info": {
+    "_postman_id": "b35cafe0-0398-4020-8544-b84bb1e8e09a",
+    "name": "Nkwa API",
+    "description": "Complete API reference for Nkwa \u2014 caller app, dispatcher dashboard, and backend. Base URL: http://<ec2-ip>:8000/api/v1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "call_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "contact_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "guide_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "\ud83d\udd12 Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Creates a new caller account and sends an OTP to the phone number via SNS.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ama Boateng\",\n  \"email\": \"ama.boateng@email.com\",\n  \"phone\": \"+233241112222\",\n  \"region\": \"Greater Accra\",\n  \"home_address\": \"Near Accra Mall, Spintex\",\n  \"password\": \"securepassword\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/verify-otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "verify-otp"
+              ]
+            },
+            "description": "Verifies the OTP sent to the caller's phone. Returns a JWT token on success. Store the token in the `token` collection variable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+233241112222\",\n  \"otp\": \"361234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/resend-otp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "resend-otp"
+              ]
+            },
+            "description": "Resends the OTP. Only usable after the 30-second cooldown shown in the UI.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+233241112222\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login (Caller)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Email and password login for returning callers. Returns JWT token.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ama.boateng@email.com\",\n  \"password\": \"securepassword\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login (Dispatcher)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/dispatcher/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "dispatcher",
+                "login"
+              ]
+            },
+            "description": "Dispatcher-specific login for the React dashboard.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"dispatcher@nkwa.io\",\n  \"password\": \"password\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udc64 User Profile",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Returns the current user's profile. Used to populate the home screen profile card and settings page."
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "Updates the caller's profile fields. Send only the fields being changed.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ama Boateng\",\n  \"phone\": \"+233241112222\",\n  \"region\": \"Greater Accra\",\n  \"home_address\": \"Near Accra Mall, Spintex\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udc65 Emergency Contacts",
+      "item": [
+        {
+          "name": "List Contacts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/contacts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contacts"
+              ]
+            },
+            "description": "Returns all contacts in the caller's emergency circle. Shown on the Contacts tab."
+          }
+        },
+        {
+          "name": "Add Contact",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/contacts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contacts"
+              ]
+            },
+            "description": "Adds a contact to the caller's emergency circle. They will receive SNS alerts when SOS is triggered.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Kofi Boateng\",\n  \"relationship\": \"Father\",\n  \"phone\": \"+233241112222\",\n  \"email\": \"kofi.boateng@gmail.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Contact",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/contacts/{{contact_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contacts",
+                "{{contact_id}}"
+              ]
+            },
+            "description": "Updates a contact. Use the contact_id variable. Commonly used to toggle the Notify switch.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notify\": false,\n  \"relationship\": \"Brother\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Contact",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/contacts/{{contact_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "contacts",
+                "{{contact_id}}"
+              ]
+            },
+            "description": "Removes a contact from the emergency circle. Triggered by the red bin icon on the Contacts tab."
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udea8 Emergency Call Pipeline",
+      "item": [
+        {
+          "name": "Initiate Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/calls/initiate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "calls",
+                "initiate"
+              ]
+            },
+            "description": "THE core Nkwa endpoint. Triggers the full pipeline: ASR \u2192 Translation \u2192 Bedrock triage \u2192 Location resolution \u2192 TTS first-aid \u2192 WebSocket push to dispatcher. service_type: AMBULANCE | FIRE | POLICE | SOS. language: twi | ewe | dag | eng. Returns call_id immediately \u2014 store it in the call_id variable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"service_type\": \"AMBULANCE\",\n  \"language\": \"twi\",\n  \"gps_lat\": 5.6362,\n  \"gps_lon\": -0.1769,\n  \"audio_base64\": \"<base64_encoded_audio_here>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Poll Call Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "calls",
+                "{{call_id}}",
+                "status"
+              ]
+            },
+            "description": "Poll every 3 seconds after initiating a call. When first_aid_audio_url appears in the response, play it to the caller. Status values: PROCESSING | FIRST_AID_READY | COMPLETE | FAILED."
+          }
+        },
+        {
+          "name": "End Call",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}/end",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "calls",
+                "{{call_id}}",
+                "end"
+              ]
+            },
+            "description": "Marks the call as ended. Called when the caller taps the End call button."
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udce2 SOS Alert",
+      "item": [
+        {
+          "name": "Trigger SOS",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sos",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "sos"
+              ]
+            },
+            "description": "One-tap panic button. Fires SNS alerts to all contacts with notify: true and pushes a WebSocket event to the dispatcher dashboard. Does not initiate a voice call.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gps_lat\": 5.6362,\n  \"gps_lon\": -0.1769,\n  \"message\": \"SOS triggered\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83c\udfe5 First Aid Guides",
+      "item": [
+        {
+          "name": "List Guides",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/first-aid",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "first-aid"
+              ]
+            },
+            "description": "Returns all available first-aid guides. Static data stored in DynamoDB. Powers the First Aid tab offline guides list."
+          }
+        },
+        {
+          "name": "Get Guide Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/first-aid/{{guide_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "first-aid",
+                "{{guide_id}}"
+              ]
+            },
+            "description": "Returns full guide content including overview and step-by-step instructions. Shown when caller taps a guide (e.g. Choking adult \u2014 5 steps)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "\ud83d\udcca Dispatcher Dashboard",
+      "item": [
+        {
+          "name": "List All Calls",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/calls",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "calls"
+              ]
+            },
+            "description": "Paginated call history for the dispatcher dashboard. Query params: limit, offset, severity (CRITICAL|URGENT|NON_EMERGENCY), classification (REAL_EMERGENCY|PRANK|UNCERTAIN), from, to."
+          }
+        },
+        {
+          "name": "Get Call Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/calls/{{call_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "calls",
+                "{{call_id}}"
+              ]
+            },
+            "description": "Full record for a single call. Used when dispatcher clicks a call card to expand it."
+          }
+        },
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/calls/stats",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "calls",
+                "stats"
+              ]
+            },
+            "description": "Summary metrics for the dashboard header: total calls today, real emergencies, pranks filtered, average pipeline duration, active critical calls."
+          }
+        }
+      ]
+    },
+    {
+      "name": "\u2699\ufe0f System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Simple health check. Call this on dashboard load before connecting the WebSocket. If this fails, show an error state \u2014 do not attempt WebSocket connection."
+          }
+        }
+      ]
+    }
+  ]
+}
