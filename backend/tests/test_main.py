@@ -28,6 +28,7 @@ class MainTests(unittest.TestCase):
         for method, path, status_code in checks:
             response = getattr(self.client, method)(path)
             self.assertEqual(response.status_code, status_code)
+            self.assertIn("message", response.json())
 
 
 if __name__ == "__main__":
