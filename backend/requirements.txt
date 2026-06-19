@@ -1,4 +1,9 @@
-fastapi==0.115.0
-httpx==0.28.1
-pydantic==2.13.4
-uvicorn==0.30.6
+fastapi
+uvicorn[standard]
+python-dotenv
+httpx
+boto3
+pydantic
+pyjwt
+bcrypt
+python-multipart
