@@ -1,0 +1,464 @@
+{
+  "info": {
+    "_postman_id": "8832388d-89d2-42d5-8b7a-10c80997f550",
+    "name": "Nkwa - Khaya AI APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53691044",
+    "_collection_link": "https://go.postman.co/collection/53691044-8832388d-89d2-42d5-8b7a-10c80997f550?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "[ASR] Get Languages",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/asr/v3/languages",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "asr",
+            "v3",
+            "languages"
+          ]
+        },
+        "description": "## Overview\n\nRetrieves the list of languages supported by the GhanaNLP Automatic Speech Recognition (ASR) API. Use this endpoint to discover which language codes are available before making a transcription request.\n\n## Authentication\n\nThis request requires an API key. Pass it using the `{{api_key}}` variable, which should be set in your active environment.\n\n## Request\n\n**Method:** GET\n\nNo request body or query parameters are required.\n\n## Response\n\nReturns a list of supported ASR languages. Each language entry typically includes:\n\n- **Language name** – The human-readable name of the language (e.g., Twi, Ga, Dagbani, Ewe)\n- **Language code** – The short code used when making transcription requests (e.g., `tw`, `gaa`, `dag`, `ee`)\n\n### Known Supported Languages\n\n| Language | Code  |\n|----------|-------|\n| Twi      | `tw`  |\n| Ga       | `gaa` |\n| Dagbani  | `dag` |\n| Ewe      | `ee`  |\n\n## Notes\n\n- Use the language codes returned by this endpoint as the `language` query parameter in the **[ASR] Transcribe Twi Audio** request.\n- This endpoint is part of the [GhanaNLP / Khaya AI](https://translation.ghananlp.org) platform, which provides NLP services for Ghanaian and African languages."
+      },
+      "response": [
+        {
+          "name": "[ASR] Get Languages",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/asr/v3/languages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "asr",
+                "v3",
+                "languages"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Length",
+              "value": "337"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 19 Jun 2026 12:11:40 GMT"
+            },
+            {
+              "key": "x-request-id",
+              "value": "3648a70b07ff1f69195fb9fc852448fa,3648a70b07ff1f69195fb9fc852448fa"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=31536000; includeSubDomains"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"languages\": [\n        {\n            \"code\": \"en\",\n            \"name\": \"African English\"\n        },\n        {\n            \"code\": \"fr\",\n            \"name\": \"African French\"\n        },\n        {\n            \"code\": \"tw\",\n            \"name\": \"Asante Twi\"\n        },\n        {\n            \"code\": \"bwu\",\n            \"name\": \"Buli\"\n        },\n        {\n            \"code\": \"dag\",\n            \"name\": \"Dagbani\"\n        },\n        {\n            \"code\": \"ee\",\n            \"name\": \"Ewe\"\n        },\n        {\n            \"code\": \"xsm\",\n            \"name\": \"Kasim\"\n        },\n        {\n            \"code\": \"kus\",\n            \"name\": \"Kusaal\"\n        },\n        {\n            \"code\": \"maw\",\n            \"name\": \"Mampruli\"\n        },\n        {\n            \"code\": \"wlx\",\n            \"name\": \"Wali\"\n        }\n    ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "[TTS] Get Speakers",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/tts/v2/speakers",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tts",
+            "v2",
+            "speakers"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "[TTS] Get Speakers",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/tts/v2/speakers",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tts",
+                "v2",
+                "speakers"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Length",
+              "value": "63"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 19 Jun 2026 12:12:44 GMT"
+            },
+            {
+              "key": "x-request-id",
+              "value": "2d1b5d45ff8b9f0eaec076224e5e0774,2d1b5d45ff8b9f0eaec076224e5e0774"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=31536000; includeSubDomains"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"speakers\": {\n        \"Multilingual\": [\n            \"male_low\",\n            \"male_high\",\n            \"female\"\n        ]\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "[Translation] Get Languages",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/v2/languages",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v2",
+            "languages"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "[Translation] Get Languages",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v2/languages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v2",
+                "languages"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Length",
+              "value": "178"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 19 Jun 2026 12:13:25 GMT"
+            },
+            {
+              "key": "x-request-id",
+              "value": "89d508e7933fab10b55ee30783735ff5,89d508e7933fab10b55ee30783735ff5"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=31536000; includeSubDomains"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"languages\": {\n        \"en\": \"English\",\n        \"tw\": \"Twi\",\n        \"ee\": \"Ewe\",\n        \"gaa\": \"Ga\",\n        \"fat\": \"Fante\",\n        \"yo\": \"Yoruba\",\n        \"dag\": \"Dagbani\",\n        \"ki\": \"Kikuyu\",\n        \"gur\": \"Gurune\",\n        \"luo\": \"Luo\",\n        \"mer\": \"Kimeru\",\n        \"kus\": \"Kusaal\"\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "[ASR] Transcribe Twi Audio",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "audio/mpeg",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "file",
+          "file": {
+            "src": "wTL9d3rSc/khayaTestTwi.mp3"
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/asr/v3/transcribe?language=tw",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "asr",
+            "v3",
+            "transcribe"
+          ],
+          "query": [
+            {
+              "key": "language",
+              "value": "tw"
+            }
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "[ASR] Transcribe Twi Audio",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "audio/mpeg",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "file",
+              "file": {
+                "src": "wTL9d3rSc/khayaTestTwi.mp3"
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/asr/v3/transcribe?language=tw",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "asr",
+                "v3",
+                "transcribe"
+              ],
+              "query": [
+                {
+                  "key": "language",
+                  "value": "tw"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Length",
+              "value": "22"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 19 Jun 2026 12:20:16 GMT"
+            },
+            {
+              "key": "x-request-id",
+              "value": "cbf1374a5642e9b066015559392be3bf,cbf1374a5642e9b066015559392be3bf"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=31536000; includeSubDomains"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"text\": \"Wɔtisɛm.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "[Translation] Twi to English",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"in\": \"Dɛn ne aduan a w'ani gye ho paa??\",\n  \"lang\": \"tw-en\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/v2/translate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "v2",
+            "translate"
+          ]
+        }
+      },
+      "response": [
+        {
+          "name": "[Translation] Twi to English",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"in\": \"Dɛn ne aduan a w'ani gye ho paa??\",\n  \"lang\": \"tw-en\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/v2/translate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "v2",
+                "translate"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Content-Length",
+              "value": "30"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 19 Jun 2026 12:25:36 GMT"
+            },
+            {
+              "key": "x-request-id",
+              "value": "4709a32eb04af4e32cfea6ec34c34aa5,4709a32eb04af4e32cfea6ec34c34aa5"
+            },
+            {
+              "key": "Strict-Transport-Security",
+              "value": "max-age=31536000; includeSubDomains"
+            }
+          ],
+          "cookie": [],
+          "body": "\"What's your favorite food? ?\""
+        }
+      ]
+    },
+    {
+      "name": "[TTS] Synthesize Twi Audio",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"Wo ho te sɛn?\",\n  \"language\": \"twi\",\n  \"speaker_id\": \"female\",\n  \"stream\": false,\n  \"format\": \"mp3\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/tts/v2/synthesize",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "tts",
+            "v2",
+            "synthesize"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{api_key}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "Ocp-Apim-Subscription-Key",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": ""
+    },
+    {
+      "key": "api_key",
+      "value": ""
+    }
+  ]
+}
