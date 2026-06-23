@@ -1,0 +1,177 @@
+[
+  {
+    "guide_id": "fa-001",
+    "title": "Cardiac Arrest",
+    "category": "Cardiac emergency",
+    "overview": "Unresponsive person who is not breathing normally. Begin CPR immediately.",
+    "steps_count": 5,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Check responsiveness", "description": "Shake the person's shoulders and shout. If no response, call 112 immediately."},
+      {"step_number": 2, "title": "Lay them flat", "description": "Place the person on their back on a firm, flat surface."},
+      {"step_number": 3, "title": "Open the airway", "description": "Tilt the head back gently and lift the chin to open the airway. Check for breathing for no more than 10 seconds."},
+      {"step_number": 4, "title": "Chest compressions", "description": "Place the heel of your hand on the centre of the chest. Push down hard and fast — at least 5 cm deep, 100-120 times per minute. Do 30 compressions."},
+      {"step_number": 5, "title": "Rescue breaths", "description": "Pinch the nose, seal your mouth over theirs, and give 2 slow rescue breaths. Watch the chest rise. Continue 30 compressions then 2 breaths until help arrives."}
+    ]
+  },
+  {
+    "guide_id": "fa-002",
+    "title": "Choking (Adult)",
+    "category": "Airway emergency",
+    "overview": "Adult who cannot breathe, speak, or cough effectively due to a blocked airway.",
+    "steps_count": 4,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Confirm choking", "description": "Ask 'Are you choking?' If they cannot speak, cough, or breathe, act immediately. If they can cough, encourage them to keep coughing."},
+      {"step_number": 2, "title": "Lean them forward", "description": "Stand behind them. Ask them to lean forward with their head lower than their chest."},
+      {"step_number": 3, "title": "5 back blows", "description": "Using the heel of your hand, give 5 firm blows between the shoulder blades. Check after each blow if the blockage has cleared."},
+      {"step_number": 4, "title": "5 abdominal thrusts (Heimlich)", "description": "If back blows fail, stand behind them and wrap your arms around their waist. Make a fist and place it just above the navel. Grasp with your other hand and thrust sharply inward and upward. Repeat up to 5 times. Alternate with back blows until the object is dislodged or the person loses consciousness."}
+    ]
+  },
+  {
+    "guide_id": "fa-003",
+    "title": "Severe Bleeding",
+    "category": "Trauma",
+    "overview": "Serious wound with heavy blood loss that will not stop on its own.",
+    "steps_count": 4,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Apply direct pressure", "description": "Press firmly on the wound with a clean cloth, bandage, or clothing. Do not remove the cloth — if it soaks through, add more on top."},
+      {"step_number": 2, "title": "Elevate if possible", "description": "If the wound is on an arm or leg and no bones are broken, raise the limb above the level of the heart."},
+      {"step_number": 3, "title": "Maintain pressure", "description": "Keep firm continuous pressure on the wound. Do not peek — lifting the cloth disrupts clotting. Maintain for at least 10–15 minutes."},
+      {"step_number": 4, "title": "Call 112 and monitor", "description": "Keep the person still and calm. Watch for signs of shock: pale skin, rapid weak pulse, confusion. Lay them down and keep them warm."}
+    ]
+  },
+  {
+    "guide_id": "fa-004",
+    "title": "Burns",
+    "category": "Burn injury",
+    "overview": "Skin damage from heat, chemicals, or electricity.",
+    "steps_count": 5,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Remove from source", "description": "Get the person away from the heat source. Do not touch them if they are in contact with electricity — turn off the power first."},
+      {"step_number": 2, "title": "Cool with water", "description": "Run cool (not cold) clean water over the burn for 20 minutes. Do not stop early — 20 minutes is essential to stop the burning process."},
+      {"step_number": 3, "title": "Do NOT use ice or home remedies", "description": "Never apply ice, butter, toothpaste, oil, or any other substance. These make burns worse and increase infection risk."},
+      {"step_number": 4, "title": "Remove jewellery", "description": "Carefully remove watches, rings, and tight clothing near the burn area before swelling begins. Do not pull off anything stuck to the skin."},
+      {"step_number": 5, "title": "Cover loosely", "description": "Cover the burn loosely with a clean non-fluffy material such as cling film or a clean plastic bag. Seek medical help for burns larger than the person's hand."}
+    ]
+  },
+  {
+    "guide_id": "fa-005",
+    "title": "Fracture (Broken Bone)",
+    "category": "Trauma",
+    "overview": "Suspected broken bone — do not move the injured area.",
+    "steps_count": 4,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Do not straighten", "description": "Never try to straighten a broken bone. Immobilise it in the position you find it."},
+      {"step_number": 2, "title": "Support the injury", "description": "Support the limb above and below the injury using cushions, folded clothing, or your hands. Keep the person still."},
+      {"step_number": 3, "title": "Apply a splint if available", "description": "You can use a rolled newspaper, stick, or firm object padded with cloth as a splint. Tie it in place — not too tight. Check circulation by pressing a fingernail or toenail until white, then release; colour should return in 2 seconds."},
+      {"step_number": 4, "title": "Do not give food or water", "description": "The person may need surgery. Do not give food, water, or pain medication without medical advice. Call 112 and keep them warm and still."}
+    ]
+  },
+  {
+    "guide_id": "fa-006",
+    "title": "Drowning",
+    "category": "Respiratory emergency",
+    "overview": "Person removed from water who is unresponsive or not breathing normally.",
+    "steps_count": 5,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Remove from water safely", "description": "Only enter water to rescue if you are a trained rescuer. Otherwise use a rope, branch, clothing, or lifebuoy to pull them to safety. Protect your own life."},
+      {"step_number": 2, "title": "Call 112", "description": "Call for help immediately. Note the exact location."},
+      {"step_number": 3, "title": "Check breathing", "description": "Lay the person on their back. Tilt the head back and check for breathing for up to 10 seconds. Do not waste time trying to remove water from the lungs."},
+      {"step_number": 4, "title": "Give rescue breaths first", "description": "Unlike regular CPR, give 5 initial rescue breaths before starting chest compressions. Pinch the nose, seal your mouth over theirs, and breathe steadily for 1 second each."},
+      {"step_number": 5, "title": "CPR 30:2", "description": "Begin CPR — 30 chest compressions followed by 2 rescue breaths. Continue until the person starts breathing, help arrives, or you are too exhausted to continue."}
+    ]
+  },
+  {
+    "guide_id": "fa-007",
+    "title": "Fire — Evacuation",
+    "category": "Fire emergency",
+    "overview": "Building on fire. Priority is to get everyone out safely.",
+    "steps_count": 5,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Get out immediately", "description": "Do not try to fight the fire or collect belongings. Get yourself and everyone else out immediately."},
+      {"step_number": 2, "title": "Stay low under smoke", "description": "Smoke rises — crawl low on the ground where the air is cleaner. Cover your mouth and nose with a damp cloth if available."},
+      {"step_number": 3, "title": "Do not use lifts", "description": "Use the stairs only. Lifts may fail or take you to the fire floor. Feel doors before opening — if a door is hot, do not open it."},
+      {"step_number": 4, "title": "Close doors behind you", "description": "As you leave, close (do not lock) doors behind you. This slows the spread of fire and smoke significantly."},
+      {"step_number": 5, "title": "Call 112 once outside", "description": "Once you are safely outside, call 112 immediately. Give the exact address and which floors are affected. Never go back inside for any reason."}
+    ]
+  },
+  {
+    "guide_id": "fa-008",
+    "title": "Stroke",
+    "category": "Neurological emergency",
+    "overview": "Sudden brain attack caused by blocked or burst blood vessel. Use the FAST test.",
+    "steps_count": 4,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "FAST test", "description": "F — Face drooping on one side (ask them to smile). A — Arm weakness (ask them to raise both arms — does one drift down?). S — Speech slurred or confused (ask them to repeat a simple sentence). T — Time to call 112 immediately if any of these are present."},
+      {"step_number": 2, "title": "Call 112 now", "description": "Stroke treatment must happen within hours. Do not wait to see if symptoms improve. Every minute without treatment, brain cells die."},
+      {"step_number": 3, "title": "Keep them comfortable", "description": "Lay the person down with their head and shoulders slightly raised. Do not give food, water, or any medication — they may not be able to swallow safely."},
+      {"step_number": 4, "title": "Note the time", "description": "Write down the exact time symptoms started. Doctors need this to decide on treatment. Stay with the person and keep them calm until help arrives."}
+    ]
+  },
+  {
+    "guide_id": "fa-009",
+    "title": "Seizure",
+    "category": "Neurological emergency",
+    "overview": "Uncontrolled electrical activity in the brain causing involuntary movements.",
+    "steps_count": 5,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Do not restrain", "description": "Never hold the person down or try to stop their movements. You will cause injury. Let the seizure run its course."},
+      {"step_number": 2, "title": "Clear the area", "description": "Remove sharp, hard, or hot objects from around them. Place something soft under their head. Loosen tight clothing around the neck."},
+      {"step_number": 3, "title": "Do not put anything in their mouth", "description": "People cannot swallow their tongue during a seizure. Putting fingers or objects in their mouth risks injury to you and them."},
+      {"step_number": 4, "title": "Time the seizure", "description": "Note when the seizure started. Call 112 if it lasts more than 5 minutes, or if another seizure follows without the person regaining consciousness."},
+      {"step_number": 5, "title": "Recovery position", "description": "When the seizure stops, gently roll the person onto their side (recovery position) so saliva or vomit can drain. Stay with them — they will be confused and exhausted. Speak calmly."}
+    ]
+  },
+  {
+    "guide_id": "fa-010",
+    "title": "Poisoning",
+    "category": "Toxic emergency",
+    "overview": "Person who has swallowed, inhaled, or been exposed to a toxic substance.",
+    "steps_count": 4,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Do not induce vomiting", "description": "Unless specifically instructed by a medical professional or poison centre, do not make the person vomit. With some substances (acids, caustics, petrol), vomiting causes more damage."},
+      {"step_number": 2, "title": "Identify the substance", "description": "If safe to do so, identify what was taken. Keep the container, packet, or any vomit to show medical staff. Note when it was taken and how much."},
+      {"step_number": 3, "title": "Call 112", "description": "Call immediately. Tell them: what was taken, how much, when, and the person's age and weight. Follow their instructions exactly."},
+      {"step_number": 4, "title": "Monitor and support", "description": "Keep the person awake and monitor their breathing. If unconscious but breathing, place them in the recovery position. If they stop breathing, begin CPR."}
+    ]
+  },
+  {
+    "guide_id": "fa-011",
+    "title": "Snake Bite",
+    "category": "Envenomation",
+    "overview": "Bite from a snake that may be venomous. Treat all snake bites as potentially serious.",
+    "steps_count": 5,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Keep the person still", "description": "Movement increases the spread of venom through the lymphatic system. Sit or lay the person down immediately and keep them as calm and still as possible."},
+      {"step_number": 2, "title": "Immobilise the bitten limb", "description": "Keep the bitten arm or leg below heart level. Immobilise it with a splint or sling if available. Do not elevate it."},
+      {"step_number": 3, "title": "Remove constricting items", "description": "Remove rings, watches, and tight clothing near the bite before swelling begins. Do not remove clothing if it means moving the limb excessively."},
+      {"step_number": 4, "title": "Do NOT cut, suck, or apply tourniquet", "description": "Never cut the wound, attempt to suck out venom, apply a tourniquet, apply ice, or give alcohol. These all make outcomes worse."},
+      {"step_number": 5, "title": "Get to hospital immediately", "description": "Call 112 or transport the person to the nearest hospital. Note the snake's appearance if you can do so safely — but do not try to catch or kill it."}
+    ]
+  },
+  {
+    "guide_id": "fa-012",
+    "title": "Road Accident",
+    "category": "Trauma",
+    "overview": "Vehicle collision with injured persons. Make the scene safe before helping.",
+    "steps_count": 5,
+    "offline_available": true,
+    "steps": [
+      {"step_number": 1, "title": "Make the scene safe", "description": "Turn on your hazard lights and park safely. If safe, turn off the crashed vehicle's engine. Do not smoke or allow anyone to smoke — fuel may have spilled."},
+      {"step_number": 2, "title": "Call 112", "description": "Call immediately. Give the exact location, road name, landmarks, and number of injured people. Stay on the line."},
+      {"step_number": 3, "title": "Do not move injured people", "description": "Unless they are in immediate danger (fire, rising water), do not move anyone who has been in a crash. Moving someone with a spinal injury can cause permanent paralysis."},
+      {"step_number": 4, "title": "Control bleeding", "description": "If someone is bleeding heavily, apply firm direct pressure with a clean cloth. Keep them warm with a blanket or jacket."},
+      {"step_number": 5, "title": "Monitor consciousness", "description": "Speak to the injured person calmly. Ask their name, where they are, what happened — this monitors their level of consciousness. Note any changes and report to ambulance crew on arrival."}
+    ]
+  }
+]
