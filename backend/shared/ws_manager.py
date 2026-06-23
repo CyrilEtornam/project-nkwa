@@ -39,12 +39,8 @@ class WebSocketManager:
             self.disconnect(websocket)
 
     async def push_event(self, event_type: str, call_id: str | None, payload: dict):
-        await self.broadcast({
-            "type": event_type,
-            "call_id": call_id,
-            "timestamp": _now(),
-            "payload": payload
-        })
+        # BYPASS: dispatcher dashboard temporarily disabled
+        print(f"[BYPASS] WebSocket event skipped: {event_type} (call_id={call_id})")
 
 
 def _now() -> str:
