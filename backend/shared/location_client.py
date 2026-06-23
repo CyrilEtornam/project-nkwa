@@ -4,10 +4,10 @@ import os
 import boto3
 
 AWS_REGION = os.getenv("AWS_REGION", "us-west-2")
-LOCATION_INDEX = os.getenv("LOCATION_INDEX_NAME", "nkwa-place-index")
 USE_MOCK = os.getenv("USE_MOCK", "true").strip().lower() in {"1", "true", "yes", "on"}
 
-_location = boto3.client("location", region_name=AWS_REGION)
+# geo-places is the V2 standalone client — no Place Index resource needed
+_geo_places = boto3.client("geo-places", region_name=AWS_REGION)
 
 
 async def resolve_location(lat: float, lon: float) -> dict:
@@ -21,23 +21,24 @@ async def resolve_location(lat: float, lon: float) -> dict:
         }
     try:
         response = await asyncio.to_thread(
-            _location.search_place_index_for_position,
-            IndexName=LOCATION_INDEX,
-            Position=[lon, lat],
+            _geo_places.reverse_geocode,
+            QueryPosition=[lon, lat],  # geo-places expects [longitude, latitude]
             MaxResults=1,
+            Language="en",
         )
-        results = response.get("Results", [])
-        if not results:
+        items = response.get("ResultItems", [])
+        if not items:
             return _fallback(lat, lon)
-        place = results[0].get("Place", {})
-        label = place.get("Label", "Unknown location")
-        municipality = place.get("Municipality", "")
-        region = place.get("Region", "")
+        item = items[0]
+        address = item.get("Address", {})
+        label = address.get("Label") or item.get("Title", "Unknown location")
+        locality = address.get("Locality", "")
+        region = address.get("Region", {}).get("Name", "")
         return {
             "landmark_name": label,
-            "district": municipality,
+            "district": locality,
             "region": region,
-            "directions_narrative": f"Caller is near {label}, {municipality}, {region}.",
+            "directions_narrative": f"Caller is near {label}.",
             "map_pin": {"lat": lat, "lon": lon, "label": "Caller location"},
         }
     except Exception:

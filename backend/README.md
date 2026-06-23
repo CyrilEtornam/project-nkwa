@@ -114,7 +114,6 @@ ws.send(JSON.stringify({ type: "PING" }));  // should get PONG back
 | `DYNAMO_CACHE_TABLE` | `nkwa-cache` | Yes |
 | `BEDROCK_MODEL_ID` | `anthropic.claude-3-5-sonnet-20241022-v2:0` | Yes |
 | `SNS_ALERT_TOPIC_ARN` | — | Yes |
-| `LOCATION_INDEX_NAME` | `nkwa-place-index` | Yes |
 | `POLLY_VOICE_ID` | `Joanna` | Optional |
 
 ---
@@ -173,7 +172,6 @@ EC2 security group: allow inbound TCP on port 8000 from `0.0.0.0/0` for the demo
 
 - [ ] Create the five DynamoDB tables: `nkwa-users`, `nkwa-calls`, `nkwa-contacts`, `nkwa-cache`, `nkwa-first-aid` (partition/sort keys per `CONTEXT.md` Section 10)
 - [ ] Create S3 bucket `nkwa-audio`; add a bucket policy to allow public-read on `calls/*/first_aid_*.mp3`
-- [ ] Create AWS Location place index `nkwa-place-index` in `us-west-2`
 - [ ] Enable Bedrock model `anthropic.claude-3-5-sonnet-20241022-v2:0` in `us-west-2` (do not enable others)
 - [ ] Create SNS topic; save ARN as `SNS_ALERT_TOPIC_ARN`; subscribe the demo phone number
 - [ ] Attach an IAM role to the EC2 instance with permissions for: DynamoDB, S3, Bedrock, Location, SNS, Transcribe, Polly
