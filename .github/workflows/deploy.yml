@@ -1,0 +1,35 @@
+name: Automated EC2 Deployment
+
+# Trigger this workflow every time a push happens on the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Pull and Restart Application
+    # Target our self-hosted runner running on the EC2 instance
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Code from GitHub
+        uses: actions/checkout@v4
+        with:
+          clean: false # Prevents overwriting local untracked files like .env
+
+      - name: Pull Latest Changes Manually
+        run: |
+          cd /home/ubuntu/project-nkwa
+          git pull origin main
+
+      - name: Restart Backend Application Service
+        run: |
+          cd /home/ubuntu/project-nkwa/backend
+          # If you are using systemd or pm2 to manage uvicorn, restart it here.
+          # For example, if using a systemd service named nkwa:
+          # sudo systemctl restart nkwa
+          
+          # Alternatively, if you are running it raw via a process manager or shell script:
+          # pkill -f uvicorn || true
+          # source .env/bin/activate && nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > uvicorn.log 2>&1 &
