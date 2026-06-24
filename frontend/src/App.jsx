@@ -249,8 +249,11 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
   const streamRef   = useRef(null)
 
   useEffect(() => {
+    let active = true
+
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
+        if (!active) { stream.getTracks().forEach(t => t.stop()); return }
         streamRef.current = stream
         const recorder = new MediaRecorder(stream)
         recorderRef.current = recorder
@@ -260,24 +263,28 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
         setPhase('recording')
       })
       .catch(() => {
+        if (!active) return
         setMicError(true)
         setPhase('recording')
       })
 
     navigator.geolocation.getCurrentPosition(
       pos => {
+        if (!active) return
         setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude })
         setGeoStatus('ready')
       },
-      () => setGeoStatus('error'),
+      () => { if (active) setGeoStatus('error') },
       { enableHighAccuracy: true, timeout: 10000 }
     )
 
     return () => {
+      active = false
       if (recorderRef.current && recorderRef.current.state !== 'inactive') {
         recorderRef.current.stop()
       }
       streamRef.current?.getTracks().forEach(t => t.stop())
+      streamRef.current = null
     }
   }, [])
 
