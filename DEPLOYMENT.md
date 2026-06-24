@@ -596,16 +596,64 @@ python simulator/simulate.py
 
 ## Part 13 — Connect the Frontend App
 
-> **Dispatcher dashboard is bypassed.** The WebSocket feed does not broadcast events, so the dispatcher dashboard frontend has nothing to receive. Only the web caller app (or mobile app) is relevant for this MVP.
+Update the API URL in the frontend to point at your EC2 instance.
 
-Update the frontend environment file with your EC2 IP:
-
-**Web caller (`web-caller/.env` or `frontend/.env`):**
-```env
-VITE_API_BASE_URL=http://YOUR_EC2_IP:8000
+```bash
+# In the project root (your local machine or EC2)
+cd frontend
+cp .env.example .env
+# Then open .env and confirm VITE_API_BASE_URL=http://YOUR_EC2_IP:8000
 ```
 
 > `VITE_WS_URL` is not needed while the dispatcher dashboard is bypassed. Add it back when real-time events are re-enabled.
+
+---
+
+## Part 14 — Deploy the Frontend
+
+> The frontend is a standard Vite + React app. It can run in dev mode for testing or be built into a static bundle for production serving.
+
+### Option A — Dev mode (local testing only)
+
+```bash
+cd frontend
+cp .env.example .env          # if you haven't already
+npm install
+npm run dev
+```
+
+Open `http://localhost:5174` in your browser. The app talks to the EC2 backend at the URL in `.env`.
+
+### Option B — Production build, served from EC2
+
+Run this on the EC2 instance (or build locally and copy the `dist/` folder to EC2):
+
+```bash
+cd ~/project-nkwa/frontend
+cp .env.example .env          # fill in the EC2 IP
+npm install
+npm run build                  # produces frontend/dist/
+```
+
+**Serve the built files:**
+
+```bash
+# Simplest — no install needed
+npx serve dist -p 3000 &
+```
+
+The web caller is now accessible at `http://YOUR_EC2_IP:3000`.
+
+> **Security group:** Open inbound port 3000 in the EC2 security group so users can reach it, the same way port 8000 was opened in Part 2.
+
+### Known limitation — local language calls in Chrome
+
+The browser `MediaRecorder` API records in **WebM/Opus** by default on Chrome and mobile Chrome. Khaya ASR does not accept WebM. This means:
+
+- **English calls from Chrome: work correctly** (Amazon Transcribe handles WebM)
+- **Twi / Ewe / Ga calls from Chrome: will fail at transcription**
+
+**Workaround for the demo:** Use **Firefox** (records as OGG/Opus, which Khaya accepts) for local language demonstrations. Alternatively, play a pre-recorded MP3 or OGG file through the microphone during the demo — this avoids the browser codec issue entirely.
 
 ---
 

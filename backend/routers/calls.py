@@ -112,15 +112,17 @@ async def initiate_call(
             location_client.resolve_location(payload.gps_lat, payload.gps_lon)
         )
 
-        # Step 12: TTS first-aid audio
+        # Step 12: TTS first-aid audio (skip if no script — e.g. NON_EMERGENCY calls)
         failure_stage = "TTS"
         first_aid_script = triage.get("first_aid_script") or ""
-        tts_audio = await khaya_client.synthesize(first_aid_script, language=payload.language)
+        first_aid_audio_url = None
+        if first_aid_script.strip():
+            tts_audio = await khaya_client.synthesize(first_aid_script, language=payload.language)
 
-        # Step 13: save TTS to S3 as public file
-        failure_stage = "TTS_UPLOAD"
-        tts_key = f"calls/{call_id}/first_aid_{payload.language}.mp3"
-        first_aid_audio_url = await s3_client.upload_public(tts_key, tts_audio, "audio/mp3")
+            # Step 13: save TTS to S3 as public file
+            failure_stage = "TTS_UPLOAD"
+            tts_key = f"calls/{call_id}/first_aid_{payload.language}.mp3"
+            first_aid_audio_url = await s3_client.upload_public(tts_key, tts_audio, "audio/mp3")
 
         # Step 14: await location result
         failure_stage = "LOCATION_AWAIT"
