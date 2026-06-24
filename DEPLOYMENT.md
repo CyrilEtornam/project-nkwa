@@ -230,8 +230,12 @@ Wait until all five tables show **Active** status before continuing.
 3. Fill in:
    - **Bucket name:** `nkwa-audio` *(must be globally unique — if it's taken, try `nkwa-audio-2025` or `nkwa-audio-gh`)*
    - **AWS Region:** `US West (Oregon) us-west-2`
-4. Under **Block Public Access settings for this bucket**, **uncheck** "Block all public access" and confirm the warning checkbox. This is required so the first-aid MP3 files can be played by the caller's phone.
-5. Leave everything else as default → click **Create bucket**
+4. Under **Object Ownership**, select **ACLs enabled** → choose **Bucket owner preferred**.
+
+   > **Why?** The backend uses `ACL="public-read"` when uploading first-aid MP3 files so callers can stream them. AWS disables ACLs by default on all new buckets. Skipping this step causes `AccessControlListNotSupported` errors at runtime.
+
+5. Under **Block Public Access settings for this bucket**, **uncheck** "Block all public access" and confirm the warning checkbox. This is required so the first-aid MP3 files can be played by the caller's phone.
+6. Leave everything else as default → click **Create bucket**
 
 ### Add a public-read policy for TTS audio
 
@@ -265,17 +269,13 @@ After the bucket is created:
 
 ## Part 6 — Enable Bedrock (Claude)
 
-> **Important:** Bedrock models are not available by default. You must explicitly request access. The process takes under 5 minutes but you must do it before deploying.
+> **Update:** AWS has removed the "Model access" approval step for most Claude models. If you don't see a "Model access" page or Claude Sonnet 4.6 is already listed as available, skip straight to the note below — no action needed.
 
 1. Go to [https://console.aws.amazon.com/bedrock](https://console.aws.amazon.com/bedrock)
 2. Make sure you're in **us-west-2**
-3. In the left sidebar, click **Model access**
-4. Click **Modify model access**
-5. Find `Claude 3.5 Sonnet v2` under Anthropic — check its checkbox
-6. Click **Next** → **Submit**
-7. Wait until the status shows **Access granted** (usually within 2–5 minutes)
+3. If a **Model access** option appears in the left sidebar, click it and confirm that Claude Sonnet models show as available. If access approval is required, request it and wait for "Access granted".
 
-> **Only enable the model you need.** Do not enable Claude 3 Opus, Mistral, or other models — you pay per token for every model you use.
+> **Which model the backend uses:** `us.anthropic.claude-sonnet-4-6` — this is a **cross-region inference profile**, which is how AWS Bedrock routes requests for newer Claude models. The `us.` prefix is required; calling the model as `anthropic.claude-sonnet-4-6` (without `us.`) will return a `ValidationException`. This ID is already set as the default in the code and in the `.env` template below.
 
 ---
 
@@ -359,7 +359,9 @@ DYNAMO_USERS_TABLE=nkwa-users
 DYNAMO_CONTACTS_TABLE=nkwa-contacts
 
 # --- Bedrock ---
-BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
+# Cross-region inference profile required for newer Claude models on Bedrock.
+# The us. prefix is mandatory — bare anthropic.claude-sonnet-4-6 returns ValidationException.
+BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
 
 # --- SNS (bypassed — leave blank for now) ---
 # SNS_ALERT_TOPIC_ARN=
