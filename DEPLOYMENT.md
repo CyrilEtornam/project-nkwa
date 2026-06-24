@@ -463,9 +463,10 @@ source .env/bin/activate
 export $(cat ../.env | grep -v '^#' | xargs)
 
 # Start the server — nohup keeps it running after you close the SSH session
-nohup uvicorn main:app --host 0.0.0.0 --port 8000 > /var/log/nkwa.log 2>&1 &
+# The tee form is needed because ubuntu doesn't own /var/log/ directly
+nohup uvicorn main:app --host 0.0.0.0 --port 8000 2>&1 | sudo tee /var/log/nkwa.log > /dev/null &
 
-echo "Server started. PID: $!"
+echo "Server started."
 ```
 
 ### Verify it's running
@@ -503,11 +504,12 @@ curl http://YOUR_EC2_IP:8000/health
 
 ### Test the core call pipeline
 
-This is the main thing to verify. You need a base64-encoded WAV audio file. For a quick test, encode any short WAV:
+This is the main thing to verify. You need a base64-encoded audio file. The backend detects
+the format automatically from the file contents — **WAV, MP3, FLAC, and OGG are all accepted**.
 
 ```bash
-# On your local machine, encode a WAV file
-base64 -w 0 test_audio.wav > test_audio_b64.txt
+# On your local machine, encode your audio file (replace with your actual filename)
+base64 -w 0 test_audio.wav > test_audio_b64.txt   # works the same with .mp3, .flac, .ogg
 AUDIO=$(cat test_audio_b64.txt)
 
 # Submit an emergency call — no Authorization header required
@@ -624,8 +626,8 @@ git pull
 cd backend
 source .env/bin/activate
 export $(cat ../.env | grep -v '^#' | xargs)
-nohup uvicorn main:app --host 0.0.0.0 --port 8000 > /var/log/nkwa.log 2>&1 &
-echo "Restarted. PID: $!"
+nohup uvicorn main:app --host 0.0.0.0 --port 8000 2>&1 | sudo tee /var/log/nkwa.log > /dev/null &
+echo "Restarted."
 ```
 
 ---

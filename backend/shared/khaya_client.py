@@ -19,6 +19,24 @@ S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "nkwa-audio")
 KHAYA_API_KEY = os.getenv("KHAYA_API_KEY", "")
 USE_MOCK = os.getenv("USE_MOCK", "true").strip().lower() in {"1", "true", "yes", "on"}
 
+# Maps first-4-byte magic signatures to (content_type, transcribe_media_format, file_extension)
+_FORMAT_TABLE: dict[bytes, tuple[str, str, str]] = {
+    b"RIFF": ("audio/wav",  "wav",  "wav"),
+    b"fLaC": ("audio/flac", "flac", "flac"),
+    b"OggS": ("audio/ogg",  "ogg",  "ogg"),
+}
+
+
+def detect_audio_format(audio_bytes: bytes) -> tuple[str, str, str]:
+    sig = audio_bytes[:4]
+    if sig in _FORMAT_TABLE:
+        return _FORMAT_TABLE[sig]
+    # MP3: ID3 tag header OR raw MPEG sync word (0xFF 0xFB / 0xF3 / 0xF2)
+    if sig[:3] == b"ID3" or sig[:2] in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2"):
+        return "audio/mpeg", "mp3", "mp3"
+    return "audio/wav", "wav", "wav"  # safe fallback
+
+
 _CACHE: dict[str, Any] = {}
 _FIXTURE_DIRS = (
     Path(__file__).resolve().parents[1] / "tests" / "fixtures",
@@ -120,10 +138,12 @@ async def transcribe(audio_bytes: bytes, language: str | None = None, lang: str 
         _set_cache(cache_key, transcription)
         return transcription
 
+    content_type, media_format, _ = detect_audio_format(audio_bytes)
+
     if resolved_language == "en":
-        transcription = await _transcribe_english(audio_bytes)
+        transcription = await _transcribe_english(audio_bytes, content_type, media_format)
     else:
-        transcription = await _transcribe_khaya(audio_bytes, resolved_language)
+        transcription = await _transcribe_khaya(audio_bytes, resolved_language, content_type)
 
     _set_cache(cache_key, transcription)
     return transcription
@@ -165,9 +185,9 @@ async def synthesize(text: str, language: str | None = None, lang: str | None = 
     return await _synthesize_khaya(text, resolved_language)
 
 
-async def _transcribe_english(audio_bytes: bytes) -> str:
+async def _transcribe_english(audio_bytes: bytes, content_type: str, media_format: str) -> str:
     job_name = f"nkwa-{uuid4()}"
-    temp_key = f"tmp/transcribe/{job_name}.wav"
+    temp_key = f"tmp/transcribe/{job_name}.{media_format}"
     s3_client = boto3.client("s3", region_name=AWS_REGION)
     transcribe_client = boto3.client("transcribe", region_name=AWS_REGION)
 
@@ -176,7 +196,7 @@ async def _transcribe_english(audio_bytes: bytes) -> str:
         Bucket=S3_BUCKET_NAME,
         Key=temp_key,
         Body=audio_bytes,
-        ContentType="audio/wav",
+        ContentType=content_type,
     )
 
     try:
@@ -184,7 +204,7 @@ async def _transcribe_english(audio_bytes: bytes) -> str:
             transcribe_client.start_transcription_job,
             TranscriptionJobName=job_name,
             LanguageCode="en-US",
-            MediaFormat="wav",
+            MediaFormat=media_format,
             Media={"MediaFileUri": f"s3://{S3_BUCKET_NAME}/{temp_key}"},
             OutputBucketName=S3_BUCKET_NAME,
         )
@@ -220,10 +240,10 @@ async def _transcribe_english(audio_bytes: bytes) -> str:
         await asyncio.to_thread(s3_client.delete_object, Bucket=S3_BUCKET_NAME, Key=temp_key)
 
 
-async def _transcribe_khaya(audio_bytes: bytes, language: str) -> str:
+async def _transcribe_khaya(audio_bytes: bytes, language: str, content_type: str) -> str:
     headers = {
         "Ocp-Apim-Subscription-Key": KHAYA_API_KEY,
-        "Content-Type": "audio/wav",
+        "Content-Type": content_type,
     }
     params = {"language": language}
 
@@ -297,4 +317,4 @@ async def _synthesize_khaya(text: str, language: str) -> bytes:
         return response.content
 
 
-__all__ = ["transcribe", "translate", "synthesize", "USE_MOCK"]
+__all__ = ["transcribe", "translate", "synthesize", "detect_audio_format", "USE_MOCK"]

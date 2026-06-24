@@ -37,11 +37,12 @@ async def initiate_call(
             "user_id": user["user_id"],
         })
 
-        # Step 3: decode audio and save to S3
+        # Step 3: decode audio, detect format, save to S3
         failure_stage = "AUDIO_UPLOAD"
         audio_bytes = base64.b64decode(payload.audio_base64)
-        audio_key = f"calls/{call_id}/audio.wav"
-        await s3_client.upload_bytes(audio_key, audio_bytes, "audio/wav")
+        content_type, _, ext = khaya_client.detect_audio_format(audio_bytes)
+        audio_key = f"calls/{call_id}/audio.{ext}"
+        await s3_client.upload_bytes(audio_key, audio_bytes, content_type)
 
         # Step 4: transcribe
         failure_stage = "TRANSCRIBE"
