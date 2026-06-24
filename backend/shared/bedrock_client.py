@@ -5,7 +5,7 @@ import os
 import boto3
 
 AWS_REGION = os.getenv("AWS_REGION", "us-west-2")
-BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "anthropic.claude-3-5-sonnet-20241022-v2:0")
+BEDROCK_MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-6")
 USE_MOCK = os.getenv("USE_MOCK", "true").strip().lower() in {"1", "true", "yes", "on"}
 
 _bedrock = boto3.client("bedrock-runtime", region_name=AWS_REGION)
