@@ -31,12 +31,13 @@ const SERVICES = [
     text:  'text-service-police',
   },
   {
-    id:    'SOS',
-    label: 'SOS Alert',
-    sub:   'Instant panic dispatch',
-    icon:  Megaphone,
-    bg:    'bg-service-sosBg',
-    text:  'text-service-sos',
+    id:       'SOS',
+    label:    'SOS Alert',
+    sub:      'Instant panic dispatch',
+    icon:     Megaphone,
+    bg:       'bg-service-sosBg',
+    text:     'text-service-sos',
+    disabled: true,
   },
 ]
 
@@ -151,11 +152,13 @@ function ServiceScreen({ onSelect, onBack }) {
             <button
               key={service.id}
               type="button"
-              onClick={() => onSelect(service)}
-              className="w-full bg-white rounded-2xl shadow-card p-4
-                         flex items-center gap-4
-                         hover:shadow-card-lg transition-shadow active:scale-[0.98]
-                         text-left"
+              onClick={() => !service.disabled && onSelect(service)}
+              disabled={service.disabled}
+              className={`w-full bg-white rounded-2xl shadow-card p-4
+                         flex items-center gap-4 text-left transition-shadow
+                         ${service.disabled
+                           ? 'opacity-50 cursor-not-allowed'
+                           : 'hover:shadow-card-lg active:scale-[0.98]'}`}
             >
               <div
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center
@@ -167,7 +170,9 @@ function ServiceScreen({ onSelect, onBack }) {
                 <p className="font-semibold text-ink-900">{service.label}</p>
                 <p className="text-sm text-ink-500">{service.sub}</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-ink-400 flex-shrink-0" />
+              {service.disabled
+                ? <span className="text-xs font-semibold text-ink-400 bg-ink-400/10 px-2 py-1 rounded-full flex-shrink-0">Coming soon</span>
+                : <ChevronRight className="w-5 h-5 text-ink-400 flex-shrink-0" />}
             </button>
           )
         })}
