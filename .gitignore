@@ -7,3 +7,4 @@ test-audio/English/final_payload.json
 .gitignore
 test-audio/English/test_audio_b64.txt
 test-audio/English/payload.json
+frontend/node_modules

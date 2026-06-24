@@ -7,7 +7,7 @@ import {
 
 const SERVICES = [
   {
-    id:    'ambulance',
+    id:    'AMBULANCE',
     label: 'Ambulance',
     sub:   'Medical emergency',
     icon:  Cross,
@@ -15,7 +15,7 @@ const SERVICES = [
     text:  'text-service-ambulance',
   },
   {
-    id:    'fire',
+    id:    'FIRE',
     label: 'Fire Service',
     sub:   'Fire & rescue',
     icon:  Flame,
@@ -23,7 +23,7 @@ const SERVICES = [
     text:  'text-service-fire',
   },
   {
-    id:    'police',
+    id:    'POLICE',
     label: 'Police',
     sub:   'Crime & security',
     icon:  Shield,
@@ -31,7 +31,7 @@ const SERVICES = [
     text:  'text-service-police',
   },
   {
-    id:    'sos',
+    id:    'SOS',
     label: 'SOS Alert',
     sub:   'Instant panic dispatch',
     icon:  Megaphone,
@@ -41,10 +41,10 @@ const SERVICES = [
 ]
 
 const LANGUAGES = [
-  { code: 'EN', label: 'English', native: 'English' },
-  { code: 'TW', label: 'Twi',     native: 'Twi'     },
-  { code: 'GA', label: 'Ga',      native: 'Ga'       },
-  { code: 'EW', label: 'Ewe',     native: 'Eʋegbe'   },
+  { code: 'en',  label: 'English', native: 'English' },
+  { code: 'tw',  label: 'Twi',     native: 'Twi'     },
+  { code: 'gaa', label: 'Ga',      native: 'Ga'       },
+  { code: 'ee',  label: 'Ewe',     native: 'Eʋegbe'   },
 ]
 
 // ─── Shell wrapper ────────────────────────────────────────────────────────────
