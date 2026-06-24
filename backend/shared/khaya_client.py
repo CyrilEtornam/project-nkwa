@@ -218,11 +218,17 @@ async def _transcribe_english(audio_bytes: bytes, content_type: str, media_forma
             status = job["TranscriptionJobStatus"]
 
             if status == "COMPLETED":
-                transcript_uri = job["Transcript"]["TranscriptFileUri"]
-                async with httpx.AsyncClient(timeout=60.0) as client:
-                    transcript_response = await client.get(transcript_uri)
-                    transcript_response.raise_for_status()
-                    payload = transcript_response.json()
+                # Transcribe writes output to s3://{bucket}/{job_name}.json.
+                # Read via boto3 so the IAM role credentials are used — a plain
+                # HTTP GET would 403 because the bucket policy only covers first-aid MP3s.
+                output_key = f"{job_name}.json"
+                s3_obj = await asyncio.to_thread(
+                    s3_client.get_object,
+                    Bucket=S3_BUCKET_NAME,
+                    Key=output_key,
+                )
+                raw = await asyncio.to_thread(s3_obj["Body"].read)
+                payload = json.loads(raw)
 
                 transcript_items = payload.get("results", {}).get("transcripts", [])
                 if transcript_items:
@@ -238,6 +244,10 @@ async def _transcribe_english(audio_bytes: bytes, content_type: str, media_forma
             await asyncio.sleep(2)
     finally:
         await asyncio.to_thread(s3_client.delete_object, Bucket=S3_BUCKET_NAME, Key=temp_key)
+        try:
+            await asyncio.to_thread(s3_client.delete_object, Bucket=S3_BUCKET_NAME, Key=f"{job_name}.json")
+        except Exception:
+            pass
 
 
 async def _transcribe_khaya(audio_bytes: bytes, language: str, content_type: str) -> str:
