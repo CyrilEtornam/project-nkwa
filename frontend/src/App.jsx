@@ -5,6 +5,8 @@ import {
   Globe, X,
 } from 'lucide-react'
 
+const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+
 const SERVICES = [
   {
     id:    'AMBULANCE',
@@ -396,6 +398,202 @@ function StatusCard({ emoji, label, status = 'pending' }) {
   )
 }
 
+// ─── Screen 5 — Processing ───────────────────────────────────────────────────
+
+function ProcessingScreen({ service, language, audioBase64, coords, onDone, onCancel }) {
+  const Icon = service.icon
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function run() {
+      try {
+        const initRes = await fetch(`${API}/api/v1/calls/initiate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_type: service.id,
+            language:     language.code,
+            gps_lat:      coords?.lat ?? 0,
+            gps_lon:      coords?.lon ?? 0,
+            audio_base64: audioBase64 ?? '',
+          }),
+        })
+
+        if (!initRes.ok) {
+          const body = await initRes.json().catch(() => ({}))
+          throw new Error(body.detail || `Error ${initRes.status}`)
+        }
+
+        const { call_id } = await initRes.json()
+
+        const detailRes = await fetch(`${API}/api/v1/calls/${call_id}`)
+        if (!detailRes.ok) throw new Error('Could not retrieve call details')
+        const detail = await detailRes.json()
+
+        if (!cancelled) onDone(detail)
+      } catch (err) {
+        if (!cancelled) setError(err.message)
+      }
+    }
+
+    run()
+    return () => { cancelled = true }
+  }, [])
+
+  if (error) {
+    return (
+      <Shell gradient>
+        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
+          <p className="text-5xl">⚠️</p>
+          <h1 className="text-white text-2xl font-bold">Something went wrong</h1>
+          <p className="text-white/70 text-sm">{error}</p>
+        </div>
+        <div className="px-6 pb-12">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="w-full bg-white/15 hover:bg-white/25 text-white font-semibold py-4 rounded-2xl transition-colors"
+          >
+            Go back
+          </button>
+        </div>
+      </Shell>
+    )
+  }
+
+  return (
+    <Shell gradient>
+      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+        <div className="relative mb-10">
+          <span className="absolute inset-0 rounded-full bg-white/20 animate-pulse-ring" />
+          <span
+            className="absolute inset-0 rounded-full bg-white/10 animate-pulse-ring"
+            style={{ animationDelay: '0.7s' }}
+          />
+          <div className="relative z-10 w-32 h-32 rounded-full bg-white/20 flex items-center justify-center">
+            <Icon className="w-14 h-14 text-white" strokeWidth={2} />
+          </div>
+        </div>
+
+        <h1 className="text-white text-3xl font-bold">Analysing…</h1>
+        <p className="text-white/70 text-base mt-2 font-medium">
+          {service.label} · {language.label}
+        </p>
+        <p className="text-white/50 text-sm mt-6">This may take up to 30 seconds</p>
+      </div>
+
+      <div className="px-6 pb-12">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="w-full flex items-center justify-center gap-2
+                     bg-white/15 hover:bg-white/25 active:scale-[0.98]
+                     text-white font-semibold py-4 rounded-2xl transition-colors"
+        >
+          <X className="w-5 h-5" />
+          Cancel
+        </button>
+      </div>
+    </Shell>
+  )
+}
+
+// ─── Screen 6 — Result ────────────────────────────────────────────────────────
+
+function ResultScreen({ result, onDone }) {
+  const isPrank  = result.status === 'PRANK'
+  const severity = result.severity
+
+  const severityStyle =
+    severity === 'CRITICAL' ? 'bg-red-100 text-red-700'      :
+    severity === 'MODERATE' ? 'bg-orange-100 text-orange-700' :
+    severity === 'LOW'      ? 'bg-green-100 text-green-700'   :
+    'bg-nkwa-50 text-nkwa-700'
+
+  if (isPrank) {
+    return (
+      <Shell>
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+          <p className="text-5xl">🚫</p>
+          <h1 className="text-2xl font-bold text-ink-900">Prank Detected</h1>
+          <p className="text-ink-500 text-sm max-w-xs">
+            This call was flagged as a non-emergency. Please only use this service for genuine emergencies.
+          </p>
+        </div>
+        <div className="px-6 pb-12">
+          <button
+            type="button"
+            onClick={onDone}
+            className="w-full bg-nkwa-gradient text-white font-bold py-4 rounded-2xl hover:opacity-90 active:scale-[0.98] transition-all"
+          >
+            Done
+          </button>
+        </div>
+      </Shell>
+    )
+  }
+
+  return (
+    <Shell>
+      <div className="px-6 pt-10 pb-8 flex-1 flex flex-col overflow-y-auto">
+
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-ink-900">Help is on the way</h1>
+          <p className="text-ink-500 text-sm mt-1">Dispatcher has been briefed</p>
+        </div>
+
+        <div className="flex items-center gap-3 mb-6">
+          {severity && (
+            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${severityStyle}`}>
+              {severity}
+            </span>
+          )}
+          {result.incident_type && (
+            <p className="text-ink-700 font-medium text-sm">{result.incident_type}</p>
+          )}
+        </div>
+
+        {result.landmark_name && (
+          <div className="bg-white rounded-2xl shadow-card p-4 mb-3">
+            <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-1">Location identified</p>
+            <p className="font-semibold text-ink-900">{result.landmark_name}</p>
+            {result.directions_narrative && (
+              <p className="text-sm text-ink-500 mt-1">{result.directions_narrative}</p>
+            )}
+          </div>
+        )}
+
+        {result.first_aid_audio_url && (
+          <div className="bg-white rounded-2xl shadow-card p-4 mb-3">
+            <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-2">First-aid audio</p>
+            <audio controls src={result.first_aid_audio_url} className="w-full" />
+          </div>
+        )}
+
+        {result.first_aid_script && (
+          <div className="bg-white rounded-2xl shadow-card p-4 mb-6">
+            <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-1">Instructions</p>
+            <p className="text-sm text-ink-700 leading-relaxed">{result.first_aid_script}</p>
+          </div>
+        )}
+
+        <div className="mt-auto pt-4">
+          <button
+            type="button"
+            onClick={onDone}
+            className="w-full bg-nkwa-gradient text-white font-bold py-4 rounded-2xl
+                       hover:opacity-90 active:scale-[0.98] transition-all"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </Shell>
+  )
+}
+
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
@@ -403,11 +601,13 @@ export default function App() {
   const [service,  setService]  = useState(null)
   const [language, setLanguage] = useState(null)
   const [callData, setCallData] = useState(null)
+  const [result,   setResult]   = useState(null)
 
   function reset() {
     setService(null)
     setLanguage(null)
     setCallData(null)
+    setResult(null)
     setScreen('home')
   }
 
@@ -440,12 +640,26 @@ export default function App() {
         service={service}
         language={language}
         onCancel={reset}
-        onSubmit={(data) => {
-          setCallData(data)
-          // next step: POST to /api/v1/calls/initiate with data + auth token
-        }}
+        onSubmit={(data) => { setCallData(data); setScreen('processing') }}
       />
     )
+  }
+
+  if (screen === 'processing') {
+    return (
+      <ProcessingScreen
+        service={service}
+        language={language}
+        audioBase64={callData?.audioBase64}
+        coords={callData?.coords}
+        onDone={(data) => { setResult(data); setScreen('result') }}
+        onCancel={reset}
+      />
+    )
+  }
+
+  if (screen === 'result') {
+    return <ResultScreen result={result} onDone={reset} />
   }
 
   return null
