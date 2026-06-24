@@ -309,14 +309,23 @@ async def _synthesize_english(text: str) -> bytes:
     return await asyncio.to_thread(audio_stream.read)
 
 
+_TTS_LANG_MAP: dict[str, str] = {
+    # TTS v2 requires ISO 639-3 codes; older 2-letter codes return 400.
+    # ASR and Translation accept 2-letter codes, so this mapping is TTS-only.
+    "tw": "twi",
+    "ee": "ewe",
+}
+
+
 async def _synthesize_khaya(text: str, language: str) -> bytes:
+    tts_lang = _TTS_LANG_MAP.get(language, language)
     headers = {
         "Ocp-Apim-Subscription-Key": KHAYA_API_KEY,
         "Accept": "audio/mp3",
     }
     payload = {
         "text": text,
-        "language": language,
+        "language": tts_lang,
         "speaker_id": "female",
         "format": "mp3",
     }
