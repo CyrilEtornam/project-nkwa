@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Phone, ChevronRight, ChevronLeft,
   Cross, Flame, Shield, Megaphone,
@@ -234,8 +234,73 @@ function LanguageScreen({ service, onSelect, onBack }) {
 
 // ─── Screen 4 — Calling ───────────────────────────────────────────────────────
 
-function CallingScreen({ service, language, onCancel }) {
+function CallingScreen({ service, language, onCancel, onSubmit }) {
   const Icon = service.icon
+
+  const [phase,     setPhase]     = useState('starting')  // starting | recording | encoding
+  const [geoStatus, setGeoStatus] = useState('pending')   // pending | ready | error
+  const [micError,  setMicError]  = useState(false)
+  const [coords,    setCoords]    = useState(null)
+
+  const recorderRef = useRef(null)
+  const chunksRef   = useRef([])
+  const streamRef   = useRef(null)
+
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        streamRef.current = stream
+        const recorder = new MediaRecorder(stream)
+        recorderRef.current = recorder
+        chunksRef.current = []
+        recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+        recorder.start()
+        setPhase('recording')
+      })
+      .catch(() => {
+        setMicError(true)
+        setPhase('recording')
+      })
+
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude })
+        setGeoStatus('ready')
+      },
+      () => setGeoStatus('error'),
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+
+    return () => {
+      if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+        recorderRef.current.stop()
+      }
+      streamRef.current?.getTracks().forEach(t => t.stop())
+    }
+  }, [])
+
+  function handleSend() {
+    const recorder = recorderRef.current
+    setPhase('encoding')
+
+    if (!recorder || recorder.state === 'inactive') {
+      onSubmit({ audioBase64: null, coords })
+      return
+    }
+
+    recorder.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' })
+      streamRef.current?.getTracks().forEach(t => t.stop())
+      const reader = new FileReader()
+      reader.onloadend = () => onSubmit({ audioBase64: reader.result.split(',')[1], coords })
+      reader.readAsDataURL(blob)
+    }
+    recorder.stop()
+  }
+
+  const heading = phase === 'starting'  ? 'Getting ready…'
+                : phase === 'recording' ? 'Speak now'
+                : 'Processing…'
 
   return (
     <Shell gradient>
@@ -255,22 +320,52 @@ function CallingScreen({ service, language, onCancel }) {
         </div>
 
         {/* status text */}
-        <h1 className="text-white text-3xl font-bold">Connecting…</h1>
+        <h1 className="text-white text-3xl font-bold">{heading}</h1>
         <p className="text-white/70 text-base mt-2 font-medium">
           {service.label} · {language.label}
         </p>
 
         {/* live status cards */}
         <div className="mt-10 w-full max-w-xs space-y-2.5">
-          <StatusCard emoji="📡" label="Reaching a dispatcher" />
-          <StatusCard emoji="📍" label="Sharing your location" />
-          <StatusCard emoji="🗣️" label={`Listening in ${language.label}`} />
-          <StatusCard emoji="🩺" label="First-aid guidance ready" />
+          <StatusCard
+            emoji="🗣️"
+            label={
+              micError              ? 'Microphone unavailable' :
+              phase === 'starting'  ? 'Requesting microphone…' :
+              phase === 'recording' ? 'Recording your message…' :
+                                     'Recording complete'
+            }
+            status={micError ? 'error' : phase === 'recording' ? 'active' : phase === 'starting' ? 'pending' : 'ready'}
+          />
+          <StatusCard
+            emoji="📍"
+            label={
+              geoStatus === 'ready' ? 'Location captured' :
+              geoStatus === 'error' ? 'Location unavailable' :
+                                     'Getting your location…'
+            }
+            status={geoStatus === 'ready' ? 'ready' : geoStatus === 'error' ? 'error' : 'active'}
+          />
+          <StatusCard emoji="📡" label="Reaching a dispatcher" status="pending" />
+          <StatusCard emoji="🩺" label="First-aid guidance ready" status="pending" />
         </div>
       </div>
 
-      {/* cancel */}
-      <div className="px-6 pb-12">
+      {/* actions */}
+      <div className="px-6 pb-12 space-y-3">
+        {!micError && (
+          <button
+            type="button"
+            onClick={handleSend}
+            disabled={phase !== 'recording'}
+            className="w-full flex items-center justify-center
+                       bg-white text-nkwa-700 font-bold py-4 rounded-2xl
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       hover:bg-white/90 active:scale-[0.98] transition-all"
+          >
+            {phase === 'encoding' ? 'Processing…' : 'Stop & Send'}
+          </button>
+        )}
         <button
           type="button"
           onClick={onCancel}
@@ -286,11 +381,17 @@ function CallingScreen({ service, language, onCancel }) {
   )
 }
 
-function StatusCard({ emoji, label }) {
+function StatusCard({ emoji, label, status = 'pending' }) {
+  const dot      = status === 'ready' ? '✓' : status === 'error' ? '✕' : status === 'active' ? '●' : '○'
+  const dotColor = status === 'ready' ? 'text-green-300'
+                 : status === 'error' ? 'text-red-300'
+                 : status === 'active' ? 'text-white animate-pulse'
+                 : 'text-white/30'
   return (
     <div className="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-3 text-left">
       <span className="text-xl flex-shrink-0">{emoji}</span>
-      <p className="text-white/85 text-sm font-medium">{label}</p>
+      <p className="text-white/85 text-sm font-medium flex-1">{label}</p>
+      <span className={`text-sm font-bold flex-shrink-0 ${dotColor}`}>{dot}</span>
     </div>
   )
 }
@@ -301,10 +402,12 @@ export default function App() {
   const [screen,   setScreen]   = useState('home')
   const [service,  setService]  = useState(null)
   const [language, setLanguage] = useState(null)
+  const [callData, setCallData] = useState(null)
 
   function reset() {
     setService(null)
     setLanguage(null)
+    setCallData(null)
     setScreen('home')
   }
 
@@ -337,6 +440,10 @@ export default function App() {
         service={service}
         language={language}
         onCancel={reset}
+        onSubmit={(data) => {
+          setCallData(data)
+          // next step: POST to /api/v1/calls/initiate with data + auth token
+        }}
       />
     )
   }
