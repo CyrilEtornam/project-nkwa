@@ -76,6 +76,7 @@ async def initiate_call(
             "is_prank": triage.get("is_prank"),
             "incident_type": triage.get("incident_type"),
             "confidence": triage.get("confidence"),
+            "triage_model_id": triage.get("triage_model_id"),
         })
 
         # Step 10: early return for pranks
@@ -98,6 +99,7 @@ async def initiate_call(
                 "transcription_translated": transcription_translated,
                 "gps_lat": str(payload.gps_lat),
                 "gps_lon": str(payload.gps_lon),
+                "triage_model_id": triage.get("triage_model_id") or "",
                 "failure_stage": None,
             })
             await manager.push_event("PRANK_DETECTED", call_id, {
@@ -111,16 +113,39 @@ async def initiate_call(
         location_task = asyncio.create_task(
             location_client.resolve_location(payload.gps_lat, payload.gps_lon)
         )
+        first_aid_task = asyncio.create_task(
+            bedrock_client.generate_first_aid_guidance(
+                transcription_translated,
+                payload.language,
+                triage,
+                payload.service_type,
+            )
+        )
 
-        # Step 12: TTS first-aid audio
-        failure_stage = "TTS"
-        first_aid_script = triage.get("first_aid_script") or ""
-        tts_audio = await khaya_client.synthesize(first_aid_script, language=payload.language)
+        # Step 12: TTS first-aid audio (skip if no script — e.g. NON_EMERGENCY calls)
+        failure_stage = "FIRST_AID_GUIDANCE"
+        first_aid = await first_aid_task
+        first_aid_script = first_aid.get("first_aid_script") or ""
+        first_aid_script_translated = ""
+        tts_script = first_aid_script
+        first_aid_audio_url = None
+        if first_aid_script.strip():
+            if khaya_client.normalize_language_code(payload.language) != "eng":
+                failure_stage = "FIRST_AID_TRANSLATE"
+                first_aid_script_translated = await khaya_client.translate(
+                    first_aid_script,
+                    source_lang="eng",
+                    target_lang=payload.language,
+                )
+                tts_script = first_aid_script_translated or first_aid_script
 
-        # Step 13: save TTS to S3 as public file
-        failure_stage = "TTS_UPLOAD"
-        tts_key = f"calls/{call_id}/first_aid_{payload.language}.mp3"
-        first_aid_audio_url = await s3_client.upload_public(tts_key, tts_audio, "audio/mp3")
+            failure_stage = "TTS"
+            tts_audio = await khaya_client.synthesize(tts_script, language=payload.language)
+
+            # Step 13: save TTS to S3 as public file
+            failure_stage = "TTS_UPLOAD"
+            tts_key = f"calls/{call_id}/first_aid_{payload.language}.mp3"
+            first_aid_audio_url = await s3_client.upload_public(tts_key, tts_audio, "audio/mp3")
 
         # Step 14: await location result
         failure_stage = "LOCATION_AWAIT"
@@ -160,10 +185,16 @@ async def initiate_call(
             "region": location.get("region", ""),
             "directions_narrative": location.get("directions_narrative", ""),
             "first_aid_script": first_aid_script,
-            "first_aid_script_translated": triage.get("first_aid_script_translated") or "",
+            "first_aid_script_translated": first_aid_script_translated,
             "first_aid_audio_url": first_aid_audio_url,
             "dispatcher_brief": triage.get("dispatcher_brief") or "",
             "recommended_response_unit": triage.get("recommended_response_unit") or "NONE",
+            "triage_model_id": triage.get("triage_model_id") or "",
+            "first_aid_model_id": first_aid.get("first_aid_model_id") or "",
+            "knowledge_source": first_aid.get("knowledge_source") or "",
+            "knowledge_source_ids": first_aid.get("knowledge_source_ids") or first_aid.get("source_ids") or [],
+            "kb_result_scores": [str(score) for score in first_aid.get("kb_result_scores", [])],
+            "source_confidence": str(first_aid.get("source_confidence", 0)),
             "pipeline_duration_seconds": str(pipeline_duration),
             "failure_stage": None,
         })
@@ -177,7 +208,10 @@ async def initiate_call(
             "recommended_response_unit": triage.get("recommended_response_unit"),
             "first_aid_audio_url": first_aid_audio_url,
             "first_aid_script": first_aid_script,
-            "first_aid_script_translated": triage.get("first_aid_script_translated"),
+            "first_aid_script_translated": first_aid_script_translated,
+            "knowledge_source": first_aid.get("knowledge_source"),
+            "knowledge_source_ids": first_aid.get("knowledge_source_ids") or first_aid.get("source_ids"),
+            "first_aid_model_id": first_aid.get("first_aid_model_id"),
             "landmark_name": location.get("landmark_name"),
             "directions_narrative": location.get("directions_narrative"),
             "map_pin": location.get("map_pin"),

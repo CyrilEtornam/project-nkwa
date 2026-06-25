@@ -514,9 +514,9 @@ function ResultScreen({ result, onDone }) {
   const severity = result.severity
 
   const severityStyle =
-    severity === 'CRITICAL' ? 'bg-red-100 text-red-700'      :
-    severity === 'MODERATE' ? 'bg-orange-100 text-orange-700' :
-    severity === 'LOW'      ? 'bg-green-100 text-green-700'   :
+    severity === 'CRITICAL'      ? 'bg-red-100 text-red-700'      :
+    severity === 'URGENT'        ? 'bg-orange-100 text-orange-700' :
+    severity === 'NON_EMERGENCY' ? 'bg-green-100 text-green-700'   :
     'bg-nkwa-50 text-nkwa-700'
 
   if (isPrank) {

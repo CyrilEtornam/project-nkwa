@@ -107,6 +107,8 @@ Steps that run synchronously before the response is returned:
 16. If severity is CRITICAL: send SNS alert *(bypassed — no-op)*
 17. Return `{ call_id, status, first_aid_audio_url }`
 
+Current Bedrock layout: Claude Opus handles triage only. For non-prank calls, the backend retrieves approved first-aid guide chunks from Bedrock Knowledge Base, uses Claude Sonnet to produce grounded English caller guidance, then asks Khaya to translate that guidance for Twi, Ga, Ewe, and other local languages before TTS.
+
 On any failure, the pipeline saves a partial record with a `failure_stage` field and returns HTTP 500.
 
 ---
@@ -160,7 +162,12 @@ When the dispatcher dashboard is re-enabled, restore `push_event()` in `shared/w
 | `DYNAMO_CACHE_TABLE` | `nkwa-cache` | Yes |
 | `DYNAMO_USERS_TABLE` | `nkwa-users` | Yes (table must exist) |
 | `DYNAMO_CONTACTS_TABLE` | `nkwa-contacts` | Yes (table must exist) |
-| `BEDROCK_MODEL_ID` | `us.anthropic.claude-sonnet-4-6` | Yes |
+| `BEDROCK_MODEL_ID` | `us.anthropic.claude-opus-4-6-v1` | Yes |
+| `BEDROCK_FIRST_AID_MODEL_ID` | `us.anthropic.claude-sonnet-4-6` | Yes |
+| `BEDROCK_FIRST_AID_FAST_MODEL_ID` | `us.anthropic.claude-haiku-4-5-20251001-v1:0` | Optional |
+| `BEDROCK_KB_ID` | - | Yes when KB enabled |
+| `BEDROCK_KB_ENABLED` | `false` | Set to `true` after KB sync |
+| `BEDROCK_KB_NUMBER_OF_RESULTS` | `3` | Optional |
 | `POLLY_VOICE_ID` | `Joanna` | Optional |
 | `POLLY_OUTPUT_FORMAT` | `mp3` | Optional |
 | `SNS_ALERT_TOPIC_ARN` | — | When SMS is re-enabled |
