@@ -361,7 +361,12 @@ DYNAMO_CONTACTS_TABLE=nkwa-contacts
 # --- Bedrock ---
 # Cross-region inference profile required for newer Claude models on Bedrock.
 # The us. prefix is mandatory — bare anthropic.claude-sonnet-4-6 returns ValidationException.
-BEDROCK_MODEL_ID=us.anthropic.claude-sonnet-4-6
+BEDROCK_MODEL_ID=us.anthropic.claude-opus-4-6-v1
+BEDROCK_FIRST_AID_MODEL_ID=us.anthropic.claude-sonnet-4-6
+BEDROCK_FIRST_AID_FAST_MODEL_ID=us.anthropic.claude-haiku-4-5-20251001-v1:0
+BEDROCK_KB_ENABLED=false
+BEDROCK_KB_ID=
+BEDROCK_KB_NUMBER_OF_RESULTS=3
 
 # --- SNS (bypassed — leave blank for now) ---
 # SNS_ALERT_TOPIC_ARN=
