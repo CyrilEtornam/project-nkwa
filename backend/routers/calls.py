@@ -130,11 +130,11 @@ async def initiate_call(
         tts_script = first_aid_script
         first_aid_audio_url = None
         if first_aid_script.strip():
-            if khaya_client.normalize_language_code(payload.language) != "eng":
+            if khaya_client.normalize_language_code(payload.language) != "en":
                 failure_stage = "FIRST_AID_TRANSLATE"
                 first_aid_script_translated = await khaya_client.translate(
                     first_aid_script,
-                    source_lang="eng",
+                    source_lang="en",
                     target_lang=payload.language,
                 )
                 tts_script = first_aid_script_translated or first_aid_script

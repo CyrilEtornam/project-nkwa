@@ -236,30 +236,93 @@ function LanguageScreen({ service, onSelect, onBack }) {
 
 // ─── Screen 4 — Calling ───────────────────────────────────────────────────────
 
+// Pick a recording format the browser actually supports, preferring Opus.
+// Returns '' to let MediaRecorder use its own default if none match.
+function pickAudioMimeType() {
+  if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return ''
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/ogg;codecs=opus',
+    'audio/webm',
+    'audio/ogg',
+    'audio/mp4',
+  ]
+  return candidates.find(t => MediaRecorder.isTypeSupported(t)) || ''
+}
+
+// Peak RMS below this means the mic captured effectively nothing (dead/muted
+// mic, or audio so quiet ASR returns an empty transcript). ~ -34 dBFS.
+const SILENCE_PEAK_THRESHOLD = 0.02
+const MIN_RECORDING_MS = 1000
+
 function CallingScreen({ service, language, onCancel, onSubmit }) {
   const Icon = service.icon
 
-  const [phase,     setPhase]     = useState('starting')  // starting | recording | encoding
-  const [geoStatus, setGeoStatus] = useState('pending')   // pending | ready | error
-  const [micError,  setMicError]  = useState(false)
-  const [coords,    setCoords]    = useState(null)
+  const [phase,        setPhase]        = useState('starting')  // starting | recording | encoding
+  const [geoStatus,    setGeoStatus]    = useState('pending')   // pending | ready | error
+  const [micError,     setMicError]     = useState(false)
+  const [coords,       setCoords]       = useState(null)
+  const [level,        setLevel]        = useState(0)           // live mic level 0..1
+  const [captureError, setCaptureError] = useState(null)
 
-  const recorderRef = useRef(null)
-  const chunksRef   = useRef([])
-  const streamRef   = useRef(null)
+  const recorderRef    = useRef(null)
+  const chunksRef      = useRef([])
+  const streamRef      = useRef(null)
+  const audioCtxRef    = useRef(null)
+  const rafRef         = useRef(null)
+  const peakLevelRef   = useRef(0)        // loudest RMS seen across the recording
+  const startTimeRef   = useRef(0)
 
   useEffect(() => {
     let active = true
 
-    navigator.mediaDevices.getUserMedia({ audio: true })
+    navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl:  true,
+      },
+    })
       .then(stream => {
         if (!active) { stream.getTracks().forEach(t => t.stop()); return }
         streamRef.current = stream
-        const recorder = new MediaRecorder(stream)
+
+        // Monitor live input level so we can detect a silent/dead mic and show
+        // the user their voice is being picked up. Best-effort — never blocks
+        // recording if the Web Audio API is unavailable.
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext
+          const ctx = new AudioCtx()
+          audioCtxRef.current = ctx
+          const analyser = ctx.createAnalyser()
+          analyser.fftSize = 2048
+          ctx.createMediaStreamSource(stream).connect(analyser)
+          const data = new Uint8Array(analyser.fftSize)
+          const tick = () => {
+            if (!active) return
+            analyser.getByteTimeDomainData(data)
+            let sum = 0
+            for (let i = 0; i < data.length; i++) {
+              const v = (data[i] - 128) / 128
+              sum += v * v
+            }
+            const rms = Math.sqrt(sum / data.length)
+            peakLevelRef.current = Math.max(peakLevelRef.current, rms)
+            setLevel(rms)
+            rafRef.current = requestAnimationFrame(tick)
+          }
+          rafRef.current = requestAnimationFrame(tick)
+        } catch { /* level monitoring is optional */ }
+
+        const mimeType = pickAudioMimeType()
+        const recorder = mimeType
+          ? new MediaRecorder(stream, { mimeType })
+          : new MediaRecorder(stream)
         recorderRef.current = recorder
         chunksRef.current = []
         recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
         recorder.start()
+        startTimeRef.current = Date.now()
         setPhase('recording')
       })
       .catch(() => {
@@ -280,26 +343,46 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
 
     return () => {
       active = false
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
       if (recorderRef.current && recorderRef.current.state !== 'inactive') {
         recorderRef.current.stop()
       }
       streamRef.current?.getTracks().forEach(t => t.stop())
       streamRef.current = null
+      audioCtxRef.current?.close().catch(() => {})
+      audioCtxRef.current = null
     }
   }, [])
 
   function handleSend() {
     const recorder = recorderRef.current
-    setPhase('encoding')
 
     if (!recorder || recorder.state === 'inactive') {
       onSubmit({ audioBase64: null, coords })
       return
     }
 
+    // Validate BEFORE stopping so the user can keep speaking and retry without
+    // losing the recorder. These guards stop silent/empty audio from reaching
+    // the backend, where it would fail with a confusing transcription error.
+    const elapsed = Date.now() - startTimeRef.current
+    if (elapsed < MIN_RECORDING_MS) {
+      setCaptureError('Please speak for a moment before sending.')
+      return
+    }
+    if (peakLevelRef.current < SILENCE_PEAK_THRESHOLD) {
+      setCaptureError('We could not hear anything. Check your microphone and speak clearly, then send again.')
+      return
+    }
+
+    setCaptureError(null)
+    setPhase('encoding')
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+
     recorder.onstop = () => {
       const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' })
       streamRef.current?.getTracks().forEach(t => t.stop())
+      audioCtxRef.current?.close().catch(() => {})
       const reader = new FileReader()
       reader.onloadend = () => onSubmit({ audioBase64: reader.result.split(',')[1], coords })
       reader.readAsDataURL(blob)
@@ -334,6 +417,16 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
           {service.label} · {language.label}
         </p>
 
+        {/* live mic level — reassures the user their voice is being captured */}
+        {phase === 'recording' && !micError && (
+          <div className="mt-5 w-44 h-2 rounded-full bg-white/15 overflow-hidden">
+            <div
+              className="h-full bg-white rounded-full transition-[width] duration-75"
+              style={{ width: `${Math.min(100, Math.round(level * 320))}%` }}
+            />
+          </div>
+        )}
+
         {/* live status cards */}
         <div className="mt-10 w-full max-w-xs space-y-2.5">
           <StatusCard
@@ -362,6 +455,12 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
 
       {/* actions */}
       <div className="px-6 pb-12 space-y-3">
+        {captureError && (
+          <p className="text-center text-sm font-semibold text-red-100 bg-red-500/30
+                        rounded-xl px-4 py-3">
+            {captureError}
+          </p>
+        )}
         {!micError && (
           <button
             type="button"

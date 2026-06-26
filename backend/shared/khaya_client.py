@@ -20,14 +20,12 @@ KHAYA_API_KEY = os.getenv("KHAYA_API_KEY", "")
 USE_MOCK = os.getenv("USE_MOCK", "true").strip().lower() in {"1", "true", "yes", "on"}
 
 _LANGUAGE_ISO3_MAP: dict[str, str] = {
-    "en": "eng",
-    "eng": "eng",
-    "tw": "twi",
-    "twi": "twi",
-    "ee": "ewe",
-    "ewe": "ewe",
-    "ga": "gaa",
-    "gaa": "gaa",
+    # Normalize all variants to the 2-letter codes Khaya Translation API v2 accepts.
+    # ASR also uses 2-letter codes. TTS uses ISO 639-3 — see _TTS_LANG_MAP below.
+    "en": "en", "eng": "en",
+    "tw": "tw", "twi": "tw",
+    "ee": "ee", "ewe": "ee",
+    "ga": "gaa", "gaa": "gaa",
     "dag": "dag",
     "fat": "fat",
     "kus": "kus",
@@ -53,7 +51,7 @@ def detect_audio_format(audio_bytes: bytes) -> tuple[str, str, str]:
 
 def normalize_language_code(language: str | None) -> str:
     if not language:
-        return "eng"
+        return "en"
     cleaned = language.strip().lower()
     return _LANGUAGE_ISO3_MAP.get(cleaned, cleaned)
 
@@ -141,13 +139,13 @@ def _mock_transcript(language: str) -> str:
     return str(data.get("text") or data.get("transcript") or f"Mock transcription for {language}")
 
 
-def _mock_translation(text: str, source_lang: str = "eng", target_lang: str = "eng") -> str:
+def _mock_translation(text: str, source_lang: str = "en", target_lang: str = "en") -> str:
     if source_lang == target_lang:
         return text
 
     data = _load_mock_json("translate_response.json", {"text": "Mock English translation"})
     translated = data.get("text") or data.get("translation") or data.get("translated_text")
-    if target_lang == "eng" and isinstance(translated, str) and translated.strip():
+    if target_lang == "en" and isinstance(translated, str) and translated.strip():
         return translated
     return text
 
@@ -208,6 +206,9 @@ async def translate(
         translated_text = _mock_translation(text, resolved_source_lang, resolved_target_lang)
         _set_cache(cache_key, translated_text)
         return translated_text
+
+    if not text.strip():
+        raise RuntimeError("Cannot translate: transcription is empty")
 
     translated_text = await _translate_khaya(text, resolved_pair)
     _set_cache(cache_key, translated_text)
@@ -307,6 +308,15 @@ async def _transcribe_khaya(audio_bytes: bytes, language: str, content_type: str
         for key in ("text", "transcript", "transcription"):
             value = payload.get(key)
             if isinstance(value, str):
+                # Khaya ASR returns HTTP 200 with an empty string when it cannot
+                # transcribe (silence, noise, or audio not matching `language`).
+                # Reject it here so the failure surfaces at TRANSCRIBE with a clear
+                # message instead of a confusing 400 MISSING_TEXT at TRANSLATE.
+                if not value.strip():
+                    raise RuntimeError(
+                        f"Khaya ASR returned empty transcription for language '{language}' "
+                        "— audio may be too short, silent, or unclear"
+                    )
                 return value
 
     raise RuntimeError("Khaya ASR response did not contain transcription text")
