@@ -46,7 +46,9 @@ const SERVICES = [
 const LANGUAGES = [
   { code: 'en',  label: 'English', native: 'English' },
   { code: 'tw',  label: 'Twi',     native: 'Twi'     },
-  { code: 'gaa', label: 'Ga',      native: 'Ga'       },
+  // Khaya's speech-to-text has no Ga model yet, so Ga voice calls can't be
+  // transcribed. Keep it visible but flag it so we show a clear message.
+  { code: 'gaa', label: 'Ga',      native: 'Ga',      voiceSupported: false },
   { code: 'ee',  label: 'Ewe',     native: 'Eʋegbe'   },
 ]
 
@@ -226,6 +228,11 @@ function LanguageScreen({ service, onSelect, onBack }) {
               <p className="font-semibold text-ink-900">{lang.label}</p>
               <p className="text-sm text-ink-500">{lang.native}</p>
             </div>
+            {lang.voiceSupported === false && (
+              <span className="text-xs font-semibold text-ink-400 bg-ink-400/10 px-2 py-1 rounded-full flex-shrink-0">
+                Voice soon
+              </span>
+            )}
             <ChevronRight className="w-5 h-5 text-ink-400 flex-shrink-0" />
           </button>
         ))}
@@ -258,6 +265,10 @@ const MIN_RECORDING_MS = 1000
 function CallingScreen({ service, language, onCancel, onSubmit }) {
   const Icon = service.icon
 
+  // Khaya ASR has no model for this language — a voice call would always fail
+  // at transcription, so we skip recording and show a clear message instead.
+  const voiceUnsupported = language.voiceSupported === false
+
   const [phase,        setPhase]        = useState('starting')  // starting | recording | encoding
   const [geoStatus,    setGeoStatus]    = useState('pending')   // pending | ready | error
   const [micError,     setMicError]     = useState(false)
@@ -274,6 +285,7 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
   const startTimeRef   = useRef(0)
 
   useEffect(() => {
+    if (voiceUnsupported) return   // no mic/recording for unsupported languages
     let active = true
 
     navigator.mediaDevices.getUserMedia({
@@ -388,6 +400,35 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
       reader.readAsDataURL(blob)
     }
     recorder.stop()
+  }
+
+  if (voiceUnsupported) {
+    return (
+      <Shell gradient>
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+          <p className="text-5xl">🗣️</p>
+          <h1 className="text-white text-2xl font-bold">
+            {language.label} voice calls aren't supported yet
+          </h1>
+          <p className="text-white/80 text-sm max-w-xs leading-relaxed">
+            We can't transcribe {language.label} speech yet. Please go back and choose
+            English, Twi, or Ewe — or call 112 directly for {language.label}.
+          </p>
+        </div>
+        <div className="px-6 pb-12">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="w-full flex items-center justify-center gap-2
+                       bg-white/15 hover:bg-white/25 active:scale-[0.98]
+                       text-white font-semibold py-4 rounded-2xl transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Choose another language
+          </button>
+        </div>
+      </Shell>
+    )
   }
 
   const heading = phase === 'starting'  ? 'Getting ready…'
