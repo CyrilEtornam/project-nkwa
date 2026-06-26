@@ -30,7 +30,7 @@ fi
 
 echo "==> Starting uvicorn..."
 cd "$BACKEND_DIR"
-source .venv/bin/activate
+source .env/bin/activate
 nohup env $(grep -v '^#' "$ENV_FILE" | grep -v '^$' | xargs) \
   uvicorn main:app --host 0.0.0.0 --port 8000 >> "$LOG_FILE" 2>&1 &
 
