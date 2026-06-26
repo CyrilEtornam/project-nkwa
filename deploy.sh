@@ -31,7 +31,8 @@ fi
 echo "==> Starting uvicorn..."
 cd "$BACKEND_DIR"
 source .venv/bin/activate
-nohup uvicorn main:app --host 0.0.0.0 --port 8000 >> "$LOG_FILE" 2>&1 &
+nohup env $(grep -v '^#' "$ENV_FILE" | grep -v '^$' | xargs) \
+  uvicorn main:app --host 0.0.0.0 --port 8000 >> "$LOG_FILE" 2>&1 &
 
 sleep 2
 if pgrep -f "uvicorn main:app" > /dev/null; then
