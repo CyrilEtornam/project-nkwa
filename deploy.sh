@@ -7,7 +7,7 @@ set -euo pipefail
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 BACKEND_DIR="$REPO_DIR/backend"
 ENV_FILE="$REPO_DIR/.env"
-LOG_FILE="$REPO_DIR/backend/uvicorn.log"
+LOG_FILE="$BACKEND_DIR/uvicorn.log"
 
 echo "==> Pulling latest code..."
 git -C "$REPO_DIR" pull --ff-only
@@ -19,24 +19,19 @@ source "$ENV_FILE"
 set +a
 
 echo "==> Stopping existing uvicorn..."
-pkill -f "uvicorn main:app" || true
-sleep 1
-
-# Hard-kill if still alive
-if pgrep -f "uvicorn main:app" > /dev/null; then
-  pkill -9 -f "uvicorn main:app" || true
-  sleep 1
-fi
+sudo kill -9 "$(sudo lsof -ti:8000)" 2>/dev/null || true
+sleep 2
 
 echo "==> Starting uvicorn..."
 cd "$BACKEND_DIR"
 source .env/bin/activate
-nohup env $(grep -v '^#' "$ENV_FILE" | grep -v '^$' | sed 's/"//g' | xargs) \
-  uvicorn main:app --host 0.0.0.0 --port 8000 >> "$LOG_FILE" 2>&1 &
 
-sleep 2
+nohup uvicorn main:app --host 0.0.0.0 --port 8000 >> "$LOG_FILE" 2>&1 &
+
+sleep 3
 if pgrep -f "uvicorn main:app" > /dev/null; then
   echo "==> Server running (PID $(pgrep -f 'uvicorn main:app')). Logs: $LOG_FILE"
+  echo "==> KHAYA_API_KEY in process: $(sudo cat /proc/$(pgrep -f 'uvicorn main:app' | head -1)/environ | tr '\0' '\n' | grep KHAYA_API_KEY | cut -c1-35)"
 else
   echo "ERROR: uvicorn did not start. Check $LOG_FILE" >&2
   tail -20 "$LOG_FILE"
