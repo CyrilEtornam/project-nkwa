@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  }
+  body {
+    @apply bg-bg text-text-hi antialiased;
+  }
+  ::selection {
+    background: #16281E;
+    color: #F7D070;
+  }
+  :focus-visible {
+    outline: 2px solid #EFB93F;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* console scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2C4A38 transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: #2C4A38;
+    border-radius: 4px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Leaflet on the dark console surface */
+.leaflet-container {
+  background: #0A1410;
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
+}
+.leaflet-control-attribution {
+  background: rgba(10, 20, 16, 0.75) !important;
+  color: #5F7568 !important;
+}
+.leaflet-control-attribution a {
+  color: #9FB4A7 !important;
+}
+.leaflet-control-zoom a {
+  background: #101E17 !important;
+  color: #E9F3EC !important;
+  border-color: #1F3629 !important;
+}
+
+/* Caller pin — an Adinkrahene ring radiating from the caller's position.
+   --pin is set inline from the call's severity colour. */
+.nkwa-pin {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--pin, #EFB93F);
+  box-shadow: 0 0 0 3px rgba(10, 20, 16, 0.85);
+}
+.nkwa-pin::before,
+.nkwa-pin::after {
+  content: '';
+  position: absolute;
+  inset: -9px;
+  border: 2px solid var(--pin, #EFB93F);
+  border-radius: 9999px;
+  animation: nkwaPinPulse 1.8s ease-out infinite;
+}
+.nkwa-pin::after {
+  animation-delay: 0.6s;
+}
+@keyframes nkwaPinPulse {
+  0%   { transform: scale(0.7); opacity: 0.8; }
+  70%  { transform: scale(1.6); opacity: 0;   }
+  100% { transform: scale(1.6); opacity: 0;   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

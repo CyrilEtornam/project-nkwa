@@ -8,6 +8,8 @@ test-audio/English/test_audio_b64.txt
 test-audio/English/payload.json
 frontend/node_modules
 frontend/dist
+dispatcher/node_modules
+dispatcher/.env
 dist/
 package-lock.json
 backend/package-lock.json
