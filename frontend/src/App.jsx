@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
   Phone, ChevronRight, ChevronLeft,
-  Cross, Flame, Shield, Megaphone,
-  Globe, X,
+  Cross, Flame, Shield, Megaphone, X,
   Languages, MapPin, HeartPulse, Timer,
   Mic, Radio, AlertTriangle, Ban, Check,
 } from 'lucide-react'
@@ -46,20 +45,38 @@ const SERVICES = [
 ]
 
 const LANGUAGES = [
-  { code: 'en',  label: 'English', native: 'English' },
-  { code: 'tw',  label: 'Twi',     native: 'Twi'     },
+  { code: 'en',  label: 'English', native: 'English', glyph: 'En' },
+  { code: 'tw',  label: 'Twi',     native: 'Twi',     glyph: 'Tw' },
   // Khaya's speech-to-text has no Ga model yet, so Ga voice calls can't be
   // transcribed. Keep it visible but flag it so we show a clear message.
-  { code: 'gaa', label: 'Ga',      native: 'Ga',      voiceSupported: false },
-  { code: 'ee',  label: 'Ewe',     native: 'Eʋegbe'   },
+  { code: 'gaa', label: 'Ga',      native: 'Gã',      glyph: 'Gã', voiceSupported: false },
+  { code: 'ee',  label: 'Ewe',     native: 'Eʋegbe',  glyph: 'Eʋ' },
 ]
+
+// ─── Brand mark ───────────────────────────────────────────────────────────────
+
+// Adinkrahene — the "chief of adinkra" symbol, three concentric circles. It is
+// the app's mark, the pulse around the call button, and the watermark on the
+// in-call screens: rings radiating outward, a signal going out for help.
+function AdinkraMark({ className }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
+      <circle cx="24" cy="24" r="6.5" fill="currentColor" />
+      <circle cx="24" cy="24" r="14" fill="none" stroke="currentColor" strokeWidth="3.5" />
+      <circle cx="24" cy="24" r="21.5" fill="none" stroke="currentColor" strokeWidth="3.5" />
+    </svg>
+  )
+}
 
 // ─── Shell wrapper ────────────────────────────────────────────────────────────
 
 function Shell({ children, gradient = false }) {
   return (
-    <div className={`min-h-screen ${gradient ? 'bg-nkwa-gradient' : 'bg-surface'}`}>
-      <div className="max-w-md mx-auto min-h-screen flex flex-col animate-screen-in">
+    <div className={`min-h-screen ${gradient ? 'bg-nkwa-gradient relative overflow-hidden' : 'bg-surface'}`}>
+      {gradient && (
+        <AdinkraMark className="absolute -top-24 -right-24 w-96 h-96 text-white/[0.05] pointer-events-none" />
+      )}
+      <div className="relative max-w-md mx-auto min-h-screen flex flex-col animate-screen-in">
         {children}
       </div>
     </div>
@@ -78,13 +95,22 @@ const HOME_FEATURES = [
 function HomeScreen({ onStart }) {
   return (
     <Shell>
+      {/* brand row */}
+      <div className="px-6 pt-8 flex items-center gap-2.5">
+        <AdinkraMark className="w-7 h-7 text-nkwa-600" />
+        <span className="font-display text-2xl font-bold text-ink-900 tracking-tight">nkwa</span>
+        <span className="ml-auto font-mono text-[11px] font-medium text-ink-400 uppercase tracking-[0.18em]">
+          Ghana 112
+        </span>
+      </div>
+
       <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
 
-        {/* big call button with pulsing rings */}
+        {/* big call button with radiating adinkrahene rings */}
         <div className="relative mb-10">
-          <span className="absolute inset-0 rounded-full bg-nkwa-200 animate-pulse-ring" />
+          <span className="absolute inset-0 rounded-full border-[3px] border-nkwa-400/60 animate-pulse-ring" />
           <span
-            className="absolute inset-0 rounded-full bg-nkwa-100 animate-pulse-ring"
+            className="absolute inset-0 rounded-full border-2 border-nkwa-300/50 animate-pulse-ring"
             style={{ animationDelay: '0.6s' }}
           />
           <button
@@ -99,7 +125,7 @@ function HomeScreen({ onStart }) {
           </button>
         </div>
 
-        <h1 className="font-display text-3xl font-bold text-ink-900 mb-3 tracking-tight">
+        <h1 className="font-display text-4xl font-bold text-ink-900 mb-3 tracking-tight">
           Call for help
         </h1>
         <p className="text-ink-500 text-sm leading-relaxed max-w-xs">
@@ -125,7 +151,9 @@ function HomeScreen({ onStart }) {
       </div>
 
       <p className="text-center text-xs text-ink-400 pb-8">
-        nkwa · Ghana 112 Emergency Copilot
+        Nkwa — <span className="italic">life</span> in Twi
+        <span className="text-ink-900 mx-1.5">★</span>
+        112 Emergency Copilot
       </p>
     </Shell>
   )
@@ -148,10 +176,10 @@ function ServiceScreen({ onSelect, onBack }) {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div>
-          <p className="text-xs text-ink-400 font-medium uppercase tracking-wide">
+          <p className="font-mono text-[11px] font-medium text-nkwa-600 uppercase tracking-[0.18em]">
             Step 1 of 2
           </p>
-          <h1 className="font-display text-xl font-bold text-ink-900 tracking-tight">Choose a service</h1>
+          <h1 className="font-display text-2xl font-bold text-ink-900 tracking-tight">Choose a service</h1>
         </div>
       </div>
 
@@ -209,10 +237,10 @@ function LanguageScreen({ service, onSelect, onBack }) {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div>
-          <p className="text-xs text-ink-400 font-medium uppercase tracking-wide">
+          <p className="font-mono text-[11px] font-medium text-nkwa-600 uppercase tracking-[0.18em]">
             Step 2 of 2 · {service.label}
           </p>
-          <h1 className="font-display text-xl font-bold text-ink-900 tracking-tight">Choose your language</h1>
+          <h1 className="font-display text-2xl font-bold text-ink-900 tracking-tight">Choose your language</h1>
         </div>
       </div>
 
@@ -229,11 +257,13 @@ function LanguageScreen({ service, onSelect, onBack }) {
                        text-left"
           >
             <div className="w-12 h-12 rounded-2xl bg-nkwa-50 flex items-center justify-center flex-shrink-0">
-              <Globe className="w-5 h-5 text-nkwa-600" strokeWidth={2.25} />
+              <span className="font-display text-lg font-bold text-nkwa-600">{lang.glyph}</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-ink-900">{lang.label}</p>
-              <p className="text-sm text-ink-500">{lang.native}</p>
+              {lang.native !== lang.label && (
+                <p className="text-sm text-ink-500">{lang.native}</p>
+              )}
             </div>
             {lang.voiceSupported === false && (
               <span className="text-xs font-semibold text-ink-400 bg-ink-400/10 px-2 py-1 rounded-full flex-shrink-0">
@@ -473,9 +503,9 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
 
         {/* pulsing service icon */}
         <div className="relative mb-10">
-          <span className="absolute inset-0 rounded-full bg-white/20 animate-pulse-ring" />
+          <span className="absolute inset-0 rounded-full border-[3px] border-white/40 animate-pulse-ring" />
           <span
-            className="absolute inset-0 rounded-full bg-white/10 animate-pulse-ring"
+            className="absolute inset-0 rounded-full border-2 border-white/25 animate-pulse-ring"
             style={{ animationDelay: '0.7s' }}
           />
           <div className="relative z-10 w-32 h-32 rounded-full bg-white/20
@@ -496,18 +526,21 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
           <>
             <div className="mt-6 flex items-end justify-center gap-1.5 h-10" aria-hidden="true">
               {WAVE_BARS.map((mult, i) => {
-                const h = Math.min(100, Math.max(14, level * 320 * mult))
+                const h = Math.min(100, Math.max(22, level * 320 * mult))
                 return (
                   <span
                     key={i}
-                    className="w-1.5 rounded-full bg-white transition-[height] duration-75"
+                    className="w-1.5 rounded-full bg-gold-400 transition-[height] duration-75"
                     style={{ height: `${h}%` }}
                   />
                 )
               })}
             </div>
-            <p className="mt-3 text-white/80 text-sm font-semibold tabular-nums tracking-wide">
-              {formatElapsed(elapsed)} · keep speaking
+            <p className="mt-3 text-sm">
+              <span className="font-mono font-medium text-gold-300 tracking-wide">
+                {formatElapsed(elapsed)}
+              </span>
+              <span className="text-white/60 font-medium"> · keep speaking</span>
             </p>
           </>
         )}
@@ -541,7 +574,7 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
       {/* actions */}
       <div className="px-6 pb-12 space-y-3">
         {captureError && (
-          <p className="text-center text-sm font-semibold text-red-100 bg-red-500/30
+          <p className="text-center text-sm font-semibold text-service-sos bg-white/95
                         rounded-xl px-4 py-3">
             {captureError}
           </p>
@@ -661,8 +694,11 @@ function ProcessingScreen({ service, language, audioBase64, coords, onDone, onCa
           <span className="w-20 h-20 rounded-full bg-white/15 flex items-center justify-center">
             <AlertTriangle className="w-10 h-10 text-white" strokeWidth={2} />
           </span>
-          <h1 className="font-display text-white text-2xl font-bold tracking-tight">Something went wrong</h1>
-          <p className="text-white/70 text-sm">{error}</p>
+          <h1 className="font-display text-white text-2xl font-bold tracking-tight">We couldn't send your call</h1>
+          <p className="text-white/80 text-sm max-w-xs leading-relaxed">
+            Check your connection and try again. If this keeps happening, call 112 directly.
+          </p>
+          <p className="font-mono text-white/50 text-xs">{error}</p>
         </div>
         <div className="px-6 pb-12">
           <button
@@ -681,9 +717,9 @@ function ProcessingScreen({ service, language, audioBase64, coords, onDone, onCa
     <Shell gradient>
       <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
         <div className="relative mb-10">
-          <span className="absolute inset-0 rounded-full bg-white/20 animate-pulse-ring" />
+          <span className="absolute inset-0 rounded-full border-[3px] border-white/40 animate-pulse-ring" />
           <span
-            className="absolute inset-0 rounded-full bg-white/10 animate-pulse-ring"
+            className="absolute inset-0 rounded-full border-2 border-white/25 animate-pulse-ring"
             style={{ animationDelay: '0.7s' }}
           />
           <div className="relative z-10 w-32 h-32 rounded-full bg-white/20 flex items-center justify-center">
@@ -734,9 +770,9 @@ function ResultScreen({ result, onDone }) {
   const severity = result.severity
 
   const severityStyle =
-    severity === 'CRITICAL'      ? 'bg-red-100 text-red-700'      :
-    severity === 'URGENT'        ? 'bg-orange-100 text-orange-700' :
-    severity === 'NON_EMERGENCY' ? 'bg-green-100 text-green-700'   :
+    severity === 'CRITICAL'      ? 'bg-service-sosBg text-service-sos'  :
+    severity === 'URGENT'        ? 'bg-orange-100 text-orange-700'      :
+    severity === 'NON_EMERGENCY' ? 'bg-nkwa-100 text-nkwa-700'          :
     'bg-nkwa-50 text-nkwa-700'
 
   if (isPrank) {
@@ -769,14 +805,14 @@ function ResultScreen({ result, onDone }) {
       <div className="px-6 pt-10 pb-8 flex-1 flex flex-col overflow-y-auto">
 
         <div className="mb-4">
-          <h1 className="font-display text-2xl font-bold text-ink-900 tracking-tight">Help is on the way</h1>
+          <h1 className="font-display text-3xl font-bold text-ink-900 tracking-tight">Help is on the way</h1>
           <p className="text-ink-500 text-sm mt-1">Dispatcher has been briefed</p>
         </div>
 
         <div className="flex items-center gap-3 mb-6">
           {severity && (
-            <span className={`px-3 py-1 rounded-full text-sm font-semibold ${severityStyle}`}>
-              {severity}
+            <span className={`px-3 py-1 rounded-lg font-display text-sm font-bold uppercase tracking-wide ${severityStyle}`}>
+              {severity.replace('_', ' ')}
             </span>
           )}
           {result.incident_type && (
@@ -786,7 +822,7 @@ function ResultScreen({ result, onDone }) {
 
         {result.landmark_name && (
           <div className="bg-white rounded-2xl border border-nkwa-100 shadow-card p-4 mb-3">
-            <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-1">Location identified</p>
+            <p className="font-mono text-[11px] font-medium text-ink-400 uppercase tracking-[0.18em] mb-1">Location identified</p>
             <p className="font-semibold text-ink-900">{result.landmark_name}</p>
             {result.directions_narrative && (
               <p className="text-sm text-ink-500 mt-1">{result.directions_narrative}</p>
@@ -796,14 +832,14 @@ function ResultScreen({ result, onDone }) {
 
         {result.first_aid_audio_url && (
           <div className="bg-white rounded-2xl border border-nkwa-100 shadow-card p-4 mb-3">
-            <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-2">First-aid audio</p>
+            <p className="font-mono text-[11px] font-medium text-ink-400 uppercase tracking-[0.18em] mb-2">First-aid audio</p>
             <audio controls src={result.first_aid_audio_url} className="w-full" />
           </div>
         )}
 
         {result.first_aid_script && (
           <div className="bg-white rounded-2xl border border-nkwa-100 shadow-card p-4 mb-6">
-            <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-1">Instructions</p>
+            <p className="font-mono text-[11px] font-medium text-ink-400 uppercase tracking-[0.18em] mb-1">Instructions</p>
             <p className="text-sm text-ink-700 leading-relaxed">{result.first_aid_script}</p>
           </div>
         )}
