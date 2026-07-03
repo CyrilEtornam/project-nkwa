@@ -50,3 +50,14 @@ async def websocket_endpoint(websocket: WebSocket):
                 })
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+
+# AWS Lambda entrypoint (used only when deployed on Lambda; ignored locally/PM2).
+# HTTP routes are served through Mangum; the /ws WebSocket route is not available
+# on Lambda but is currently unused (push_event is a no-op, no client connects).
+try:
+    from mangum import Mangum
+
+    handler = Mangum(app)
+except ImportError:  # mangum not installed in local/dev environments
+    handler = None
