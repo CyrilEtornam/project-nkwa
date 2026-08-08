@@ -1,6 +1,6 @@
 from __future__ import annotations
-from pydantic import BaseModel
-from typing import Optional
+from pydantic import BaseModel, Field, field_validator
+from typing import Literal, Optional
 
 
 # Auth
@@ -85,6 +85,42 @@ class CallStatusResponse(BaseModel):
     status: str
     first_aid_audio_url: Optional[str] = None
     first_aid_text: Optional[str] = None
+
+class TriageDecision(BaseModel):
+    severity: Literal["CRITICAL", "URGENT", "NON_EMERGENCY"]
+    call_classification: Literal["REAL_EMERGENCY", "PRANK", "UNCERTAIN"]
+    incident_type: Optional[str] = None
+    is_prank: bool = False
+    prank_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    dispatcher_brief: str
+    recommended_response_unit: Literal["AMBULANCE", "FIRE", "POLICE", "NONE"]
+    triage_model_id: Optional[str] = None
+
+    @field_validator("severity", "call_classification", "recommended_response_unit", mode="before")
+    @classmethod
+    def normalize_enum(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().upper().replace("-", "_").replace(" ", "_")
+        return value
+
+class KnowledgeSnippet(BaseModel):
+    source_id: str
+    text: str
+    score: Optional[float] = None
+    source_uri: Optional[str] = None
+    metadata: dict = Field(default_factory=dict)
+    knowledge_source: Literal["bedrock_kb", "local_fallback", "mock"] = "bedrock_kb"
+
+class FirstAidGuidance(BaseModel):
+    first_aid_script: str
+    first_aid_script_translated: Optional[str] = None
+    source_ids: list[str] = Field(default_factory=list)
+    source_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    knowledge_source: Literal["bedrock_kb", "local_fallback", "mock"] = "local_fallback"
+    knowledge_source_ids: list[str] = Field(default_factory=list)
+    kb_result_scores: list[float] = Field(default_factory=list)
+    first_aid_model_id: Optional[str] = None
 
 # SOS
 class SOSRequest(BaseModel):

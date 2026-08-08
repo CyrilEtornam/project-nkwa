@@ -3,6 +3,10 @@ export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans:    ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
       colors: {
         nkwa: {
           50:  '#F6F2FE',
@@ -38,12 +42,22 @@ export default {
       },
       animation: {
         'pulse-ring': 'pulseRing 1.8s ease-out infinite',
+        'breathe':    'breathe 3.4s ease-in-out infinite',
+        'screen-in':  'screenIn 0.28s ease-out both',
       },
       keyframes: {
         pulseRing: {
           '0%':   { transform: 'scale(0.9)', opacity: '0.7' },
           '70%':  { transform: 'scale(1.5)', opacity: '0'   },
           '100%': { transform: 'scale(1.5)', opacity: '0'   },
+        },
+        breathe: {
+          '0%, 100%': { transform: 'scale(1)'    },
+          '50%':      { transform: 'scale(1.04)' },
+        },
+        screenIn: {
+          '0%':   { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)'   },
         },
       },
     },

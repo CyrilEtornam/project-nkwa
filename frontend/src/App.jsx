@@ -3,9 +3,11 @@ import {
   Phone, ChevronRight, ChevronLeft,
   Cross, Flame, Shield, Megaphone,
   Globe, X,
+  Languages, MapPin, HeartPulse, Timer,
+  Mic, Radio, AlertTriangle, Ban, Check,
 } from 'lucide-react'
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
 const SERVICES = [
   {
@@ -46,7 +48,9 @@ const SERVICES = [
 const LANGUAGES = [
   { code: 'en',  label: 'English', native: 'English' },
   { code: 'tw',  label: 'Twi',     native: 'Twi'     },
-  { code: 'gaa', label: 'Ga',      native: 'Ga'       },
+  // Khaya's speech-to-text has no Ga model yet, so Ga voice calls can't be
+  // transcribed. Keep it visible but flag it so we show a clear message.
+  { code: 'gaa', label: 'Ga',      native: 'Ga',      voiceSupported: false },
   { code: 'ee',  label: 'Ewe',     native: 'Eʋegbe'   },
 ]
 
@@ -55,7 +59,7 @@ const LANGUAGES = [
 function Shell({ children, gradient = false }) {
   return (
     <div className={`min-h-screen ${gradient ? 'bg-nkwa-gradient' : 'bg-surface'}`}>
-      <div className="max-w-md mx-auto min-h-screen flex flex-col">
+      <div className="max-w-md mx-auto min-h-screen flex flex-col animate-screen-in">
         {children}
       </div>
     </div>
@@ -63,6 +67,13 @@ function Shell({ children, gradient = false }) {
 }
 
 // ─── Screen 1 — Home ─────────────────────────────────────────────────────────
+
+const HOME_FEATURES = [
+  { icon: Languages, text: 'Twi, Ga, Ewe, English' },
+  { icon: MapPin,    text: 'Landmark location'     },
+  { icon: HeartPulse, text: 'Live first-aid guide' },
+  { icon: Timer,     text: 'Under 30 seconds'      },
+]
 
 function HomeScreen({ onStart }) {
   return (
@@ -81,14 +92,14 @@ function HomeScreen({ onStart }) {
             onClick={onStart}
             aria-label="Start emergency call"
             className="relative z-10 w-40 h-40 rounded-full bg-nkwa-gradient shadow-card-lg
-                       flex items-center justify-center
+                       flex items-center justify-center animate-breathe
                        transition-transform active:scale-95 hover:shadow-2xl"
           >
             <Phone className="w-16 h-16 text-white" strokeWidth={2} />
           </button>
         </div>
 
-        <h1 className="text-2xl font-bold text-ink-900 mb-3">
+        <h1 className="font-display text-3xl font-bold text-ink-900 mb-3 tracking-tight">
           Call for help
         </h1>
         <p className="text-ink-500 text-sm leading-relaxed max-w-xs">
@@ -98,17 +109,15 @@ function HomeScreen({ onStart }) {
 
         {/* feature chips */}
         <div className="mt-10 grid grid-cols-2 gap-3 w-full max-w-xs text-left">
-          {[
-            { emoji: '🇬🇭', text: 'Twi, Ga, Ewe, English' },
-            { emoji: '📍', text: 'Landmark location'      },
-            { emoji: '🩺', text: 'Live first-aid guide'   },
-            { emoji: '⚡', text: 'Under 30 seconds'       },
-          ].map(({ emoji, text }) => (
+          {HOME_FEATURES.map(({ icon: Icon, text }) => (
             <div
               key={text}
-              className="flex items-center gap-2 bg-white rounded-xl px-3 py-2.5 shadow-card"
+              className="flex items-center gap-2.5 bg-white rounded-xl px-3 py-2.5
+                         border border-nkwa-100 shadow-card"
             >
-              <span className="text-lg">{emoji}</span>
+              <span className="w-7 h-7 rounded-lg bg-nkwa-50 flex items-center justify-center flex-shrink-0">
+                <Icon className="w-4 h-4 text-nkwa-600" strokeWidth={2.25} />
+              </span>
               <span className="text-xs font-medium text-ink-700">{text}</span>
             </div>
           ))}
@@ -142,7 +151,7 @@ function ServiceScreen({ onSelect, onBack }) {
           <p className="text-xs text-ink-400 font-medium uppercase tracking-wide">
             Step 1 of 2
           </p>
-          <h1 className="text-xl font-bold text-ink-900">Choose a service</h1>
+          <h1 className="font-display text-xl font-bold text-ink-900 tracking-tight">Choose a service</h1>
         </div>
       </div>
 
@@ -156,11 +165,11 @@ function ServiceScreen({ onSelect, onBack }) {
               type="button"
               onClick={() => !service.disabled && onSelect(service)}
               disabled={service.disabled}
-              className={`w-full bg-white rounded-2xl shadow-card p-4
-                         flex items-center gap-4 text-left transition-shadow
+              className={`w-full bg-white rounded-2xl border border-nkwa-100 shadow-card p-4
+                         flex items-center gap-4 text-left transition-all
                          ${service.disabled
                            ? 'opacity-50 cursor-not-allowed'
-                           : 'hover:shadow-card-lg active:scale-[0.98]'}`}
+                           : 'hover:shadow-card-lg hover:border-nkwa-200 active:scale-[0.98]'}`}
             >
               <div
                 className={`w-12 h-12 rounded-2xl flex items-center justify-center
@@ -203,7 +212,7 @@ function LanguageScreen({ service, onSelect, onBack }) {
           <p className="text-xs text-ink-400 font-medium uppercase tracking-wide">
             Step 2 of 2 · {service.label}
           </p>
-          <h1 className="text-xl font-bold text-ink-900">Choose your language</h1>
+          <h1 className="font-display text-xl font-bold text-ink-900 tracking-tight">Choose your language</h1>
         </div>
       </div>
 
@@ -214,9 +223,9 @@ function LanguageScreen({ service, onSelect, onBack }) {
             key={lang.code}
             type="button"
             onClick={() => onSelect(lang)}
-            className="w-full bg-white rounded-2xl shadow-card p-4
+            className="w-full bg-white rounded-2xl border border-nkwa-100 shadow-card p-4
                        flex items-center gap-4
-                       hover:shadow-card-lg transition-shadow active:scale-[0.98]
+                       hover:shadow-card-lg hover:border-nkwa-200 transition-all active:scale-[0.98]
                        text-left"
           >
             <div className="w-12 h-12 rounded-2xl bg-nkwa-50 flex items-center justify-center flex-shrink-0">
@@ -226,6 +235,11 @@ function LanguageScreen({ service, onSelect, onBack }) {
               <p className="font-semibold text-ink-900">{lang.label}</p>
               <p className="text-sm text-ink-500">{lang.native}</p>
             </div>
+            {lang.voiceSupported === false && (
+              <span className="text-xs font-semibold text-ink-400 bg-ink-400/10 px-2 py-1 rounded-full flex-shrink-0">
+                Voice soon
+              </span>
+            )}
             <ChevronRight className="w-5 h-5 text-ink-400 flex-shrink-0" />
           </button>
         ))}
@@ -236,30 +250,110 @@ function LanguageScreen({ service, onSelect, onBack }) {
 
 // ─── Screen 4 — Calling ───────────────────────────────────────────────────────
 
+// Pick a recording format the browser actually supports, preferring Opus.
+// Returns '' to let MediaRecorder use its own default if none match.
+function pickAudioMimeType() {
+  if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return ''
+  const candidates = [
+    'audio/webm;codecs=opus',
+    'audio/ogg;codecs=opus',
+    'audio/webm',
+    'audio/ogg',
+    'audio/mp4',
+  ]
+  return candidates.find(t => MediaRecorder.isTypeSupported(t)) || ''
+}
+
+// Peak RMS below this means the mic captured effectively nothing (dead/muted
+// mic, or audio so quiet ASR returns an empty transcript). ~ -34 dBFS.
+const SILENCE_PEAK_THRESHOLD = 0.02
+const MIN_RECORDING_MS = 1000
+
+// Relative heights for the live waveform bars — a calm symmetric shape that
+// the measured mic level scales up and down.
+const WAVE_BARS = [0.45, 0.7, 0.95, 1, 0.95, 0.7, 0.45]
+
+function formatElapsed(ms) {
+  const total = Math.floor(ms / 1000)
+  const m = Math.floor(total / 60)
+  const s = total % 60
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 function CallingScreen({ service, language, onCancel, onSubmit }) {
   const Icon = service.icon
 
-  const [phase,     setPhase]     = useState('starting')  // starting | recording | encoding
-  const [geoStatus, setGeoStatus] = useState('pending')   // pending | ready | error
-  const [micError,  setMicError]  = useState(false)
-  const [coords,    setCoords]    = useState(null)
+  // Khaya ASR has no model for this language — a voice call would always fail
+  // at transcription, so we skip recording and show a clear message instead.
+  const voiceUnsupported = language.voiceSupported === false
 
-  const recorderRef = useRef(null)
-  const chunksRef   = useRef([])
-  const streamRef   = useRef(null)
+  const [phase,        setPhase]        = useState('starting')  // starting | recording | encoding
+  const [geoStatus,    setGeoStatus]    = useState('pending')   // pending | ready | error
+  const [micError,     setMicError]     = useState(false)
+  const [coords,       setCoords]       = useState(null)
+  const [level,        setLevel]        = useState(0)           // live mic level 0..1
+  const [captureError, setCaptureError] = useState(null)
+  const [elapsed,      setElapsed]      = useState(0)           // ms recorded so far
+
+  const recorderRef    = useRef(null)
+  const chunksRef      = useRef([])
+  const streamRef      = useRef(null)
+  const audioCtxRef    = useRef(null)
+  const rafRef         = useRef(null)
+  const peakLevelRef   = useRef(0)        // loudest RMS seen across the recording
+  const startTimeRef   = useRef(0)
 
   useEffect(() => {
+    if (voiceUnsupported) return   // no mic/recording for unsupported languages
     let active = true
 
-    navigator.mediaDevices.getUserMedia({ audio: true })
+    navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl:  true,
+      },
+    })
       .then(stream => {
         if (!active) { stream.getTracks().forEach(t => t.stop()); return }
         streamRef.current = stream
-        const recorder = new MediaRecorder(stream)
+
+        // Monitor live input level so we can detect a silent/dead mic and show
+        // the user their voice is being picked up. Best-effort — never blocks
+        // recording if the Web Audio API is unavailable.
+        try {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext
+          const ctx = new AudioCtx()
+          audioCtxRef.current = ctx
+          const analyser = ctx.createAnalyser()
+          analyser.fftSize = 2048
+          ctx.createMediaStreamSource(stream).connect(analyser)
+          const data = new Uint8Array(analyser.fftSize)
+          const tick = () => {
+            if (!active) return
+            analyser.getByteTimeDomainData(data)
+            let sum = 0
+            for (let i = 0; i < data.length; i++) {
+              const v = (data[i] - 128) / 128
+              sum += v * v
+            }
+            const rms = Math.sqrt(sum / data.length)
+            peakLevelRef.current = Math.max(peakLevelRef.current, rms)
+            setLevel(rms)
+            rafRef.current = requestAnimationFrame(tick)
+          }
+          rafRef.current = requestAnimationFrame(tick)
+        } catch { /* level monitoring is optional */ }
+
+        const mimeType = pickAudioMimeType()
+        const recorder = mimeType
+          ? new MediaRecorder(stream, { mimeType })
+          : new MediaRecorder(stream)
         recorderRef.current = recorder
         chunksRef.current = []
         recorder.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
         recorder.start()
+        startTimeRef.current = Date.now()
         setPhase('recording')
       })
       .catch(() => {
@@ -280,31 +374,93 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
 
     return () => {
       active = false
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
       if (recorderRef.current && recorderRef.current.state !== 'inactive') {
         recorderRef.current.stop()
       }
       streamRef.current?.getTracks().forEach(t => t.stop())
       streamRef.current = null
+      audioCtxRef.current?.close().catch(() => {})
+      audioCtxRef.current = null
     }
   }, [])
 
+  // Tick a live recording timer so the caller can see we're capturing and knows
+  // to keep speaking. Reads the recorder's real start time; stops when we leave
+  // the recording phase.
+  useEffect(() => {
+    if (phase !== 'recording' || micError) return
+    const id = setInterval(() => {
+      setElapsed(Date.now() - startTimeRef.current)
+    }, 250)
+    return () => clearInterval(id)
+  }, [phase, micError])
+
   function handleSend() {
     const recorder = recorderRef.current
-    setPhase('encoding')
 
     if (!recorder || recorder.state === 'inactive') {
       onSubmit({ audioBase64: null, coords })
       return
     }
 
+    // Validate BEFORE stopping so the user can keep speaking and retry without
+    // losing the recorder. These guards stop silent/empty audio from reaching
+    // the backend, where it would fail with a confusing transcription error.
+    const elapsedMs = Date.now() - startTimeRef.current
+    if (elapsedMs < MIN_RECORDING_MS) {
+      setCaptureError('Please speak for a moment before sending.')
+      return
+    }
+    if (peakLevelRef.current < SILENCE_PEAK_THRESHOLD) {
+      setCaptureError('We could not hear anything. Check your microphone and speak clearly, then send again.')
+      return
+    }
+
+    setCaptureError(null)
+    setPhase('encoding')
+    if (rafRef.current) cancelAnimationFrame(rafRef.current)
+
     recorder.onstop = () => {
       const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' })
       streamRef.current?.getTracks().forEach(t => t.stop())
+      audioCtxRef.current?.close().catch(() => {})
       const reader = new FileReader()
       reader.onloadend = () => onSubmit({ audioBase64: reader.result.split(',')[1], coords })
       reader.readAsDataURL(blob)
     }
     recorder.stop()
+  }
+
+  if (voiceUnsupported) {
+    return (
+      <Shell gradient>
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+          <span className="w-20 h-20 rounded-full bg-white/15 flex items-center justify-center">
+            <Languages className="w-10 h-10 text-white" strokeWidth={2} />
+          </span>
+          <h1 className="font-display text-white text-2xl font-bold tracking-tight">
+            {language.label} voice calls aren't supported yet
+          </h1>
+          <p className="text-white/80 text-sm max-w-xs leading-relaxed">
+            We can't transcribe {language.label} speech yet. Please go back and choose
+            English, Twi, or Ewe — or call 112 directly for {language.label}.
+          </p>
+        </div>
+        <div className="px-6 pb-12">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="w-full flex items-center justify-center gap-2
+                       bg-white/15 hover:bg-white/25 active:scale-[0.98]
+                       text-white font-semibold py-4 rounded-2xl transition-all"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Choose another language
+          </button>
+        </div>
+      </Shell>
+    )
   }
 
   const heading = phase === 'starting'  ? 'Getting ready…'
@@ -329,15 +485,37 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
         </div>
 
         {/* status text */}
-        <h1 className="text-white text-3xl font-bold">{heading}</h1>
+        <h1 className="font-display text-white text-3xl font-bold tracking-tight">{heading}</h1>
         <p className="text-white/70 text-base mt-2 font-medium">
           {service.label} · {language.label}
         </p>
 
+        {/* live waveform + recording timer — reassures the caller their voice is
+            being captured and that they should keep speaking */}
+        {phase === 'recording' && !micError && (
+          <>
+            <div className="mt-6 flex items-end justify-center gap-1.5 h-10" aria-hidden="true">
+              {WAVE_BARS.map((mult, i) => {
+                const h = Math.min(100, Math.max(14, level * 320 * mult))
+                return (
+                  <span
+                    key={i}
+                    className="w-1.5 rounded-full bg-white transition-[height] duration-75"
+                    style={{ height: `${h}%` }}
+                  />
+                )
+              })}
+            </div>
+            <p className="mt-3 text-white/80 text-sm font-semibold tabular-nums tracking-wide">
+              {formatElapsed(elapsed)} · keep speaking
+            </p>
+          </>
+        )}
+
         {/* live status cards */}
-        <div className="mt-10 w-full max-w-xs space-y-2.5">
+        <div className="mt-8 w-full max-w-xs space-y-2.5">
           <StatusCard
-            emoji="🗣️"
+            icon={Mic}
             label={
               micError              ? 'Microphone unavailable' :
               phase === 'starting'  ? 'Requesting microphone…' :
@@ -347,7 +525,7 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
             status={micError ? 'error' : phase === 'recording' ? 'active' : phase === 'starting' ? 'pending' : 'ready'}
           />
           <StatusCard
-            emoji="📍"
+            icon={MapPin}
             label={
               geoStatus === 'ready' ? 'Location captured' :
               geoStatus === 'error' ? 'Location unavailable' :
@@ -355,13 +533,19 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
             }
             status={geoStatus === 'ready' ? 'ready' : geoStatus === 'error' ? 'error' : 'active'}
           />
-          <StatusCard emoji="📡" label="Reaching a dispatcher" status="pending" />
-          <StatusCard emoji="🩺" label="First-aid guidance ready" status="pending" />
+          <StatusCard icon={Radio} label="Reaching a dispatcher" status="pending" />
+          <StatusCard icon={HeartPulse} label="First-aid guidance ready" status="pending" />
         </div>
       </div>
 
       {/* actions */}
       <div className="px-6 pb-12 space-y-3">
+        {captureError && (
+          <p className="text-center text-sm font-semibold text-red-100 bg-red-500/30
+                        rounded-xl px-4 py-3">
+            {captureError}
+          </p>
+        )}
         {!micError && (
           <button
             type="button"
@@ -380,7 +564,7 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
           onClick={onCancel}
           className="w-full flex items-center justify-center gap-2
                      bg-white/15 hover:bg-white/25 active:scale-[0.98]
-                     text-white font-semibold py-4 rounded-2xl transition-colors"
+                     text-white font-semibold py-4 rounded-2xl transition-all"
         >
           <X className="w-5 h-5" />
           Cancel call
@@ -390,26 +574,47 @@ function CallingScreen({ service, language, onCancel, onSubmit }) {
   )
 }
 
-function StatusCard({ emoji, label, status = 'pending' }) {
-  const dot      = status === 'ready' ? '✓' : status === 'error' ? '✕' : status === 'active' ? '●' : '○'
-  const dotColor = status === 'ready' ? 'text-green-300'
-                 : status === 'error' ? 'text-red-300'
-                 : status === 'active' ? 'text-white animate-pulse'
-                 : 'text-white/30'
+function StatusCard({ icon: Icon, label, status = 'pending' }) {
+  const indicator =
+    status === 'ready' ? <Check className="w-4 h-4 text-green-300" strokeWidth={3} />
+  : status === 'error' ? <X className="w-4 h-4 text-red-300" strokeWidth={3} />
+  : status === 'active' ? <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
+  : <span className="w-2.5 h-2.5 rounded-full border-2 border-white/30" />
+
   return (
     <div className="flex items-center gap-3 bg-white/10 rounded-xl px-4 py-3 text-left">
-      <span className="text-xl flex-shrink-0">{emoji}</span>
+      <span className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+        <Icon className="w-4 h-4 text-white" strokeWidth={2.25} />
+      </span>
       <p className="text-white/85 text-sm font-medium flex-1">{label}</p>
-      <span className={`text-sm font-bold flex-shrink-0 ${dotColor}`}>{dot}</span>
+      <span className="flex items-center justify-center w-5 flex-shrink-0">{indicator}</span>
     </div>
   )
 }
 
 // ─── Screen 5 — Processing ───────────────────────────────────────────────────
 
+const PIPELINE_STEPS = [
+  'Transcribing your message',
+  'Understanding the emergency',
+  'Pinpointing your location',
+  'Preparing first-aid guidance',
+]
+
 function ProcessingScreen({ service, language, audioBase64, coords, onDone, onCancel }) {
   const Icon = service.icon
   const [error, setError] = useState(null)
+  const [step,  setStep]  = useState(0)   // index of the step currently in progress
+
+  // Advance the visual pipeline while the real request is in flight. Caps at the
+  // last step so it stays "in progress" until the response actually arrives.
+  useEffect(() => {
+    if (error) return
+    const id = setInterval(() => {
+      setStep(s => Math.min(s + 1, PIPELINE_STEPS.length - 1))
+    }, 6000)
+    return () => clearInterval(id)
+  }, [error])
 
   useEffect(() => {
     let cancelled = false
@@ -453,15 +658,17 @@ function ProcessingScreen({ service, language, audioBase64, coords, onDone, onCa
     return (
       <Shell gradient>
         <div className="flex-1 flex flex-col items-center justify-center px-6 text-center gap-4">
-          <p className="text-5xl">⚠️</p>
-          <h1 className="text-white text-2xl font-bold">Something went wrong</h1>
+          <span className="w-20 h-20 rounded-full bg-white/15 flex items-center justify-center">
+            <AlertTriangle className="w-10 h-10 text-white" strokeWidth={2} />
+          </span>
+          <h1 className="font-display text-white text-2xl font-bold tracking-tight">Something went wrong</h1>
           <p className="text-white/70 text-sm">{error}</p>
         </div>
         <div className="px-6 pb-12">
           <button
             type="button"
             onClick={onCancel}
-            className="w-full bg-white/15 hover:bg-white/25 text-white font-semibold py-4 rounded-2xl transition-colors"
+            className="w-full bg-white/15 hover:bg-white/25 text-white font-semibold py-4 rounded-2xl transition-all"
           >
             Go back
           </button>
@@ -484,10 +691,23 @@ function ProcessingScreen({ service, language, audioBase64, coords, onDone, onCa
           </div>
         </div>
 
-        <h1 className="text-white text-3xl font-bold">Analysing…</h1>
+        <h1 className="font-display text-white text-3xl font-bold tracking-tight">Analysing…</h1>
         <p className="text-white/70 text-base mt-2 font-medium">
           {service.label} · {language.label}
         </p>
+
+        {/* live pipeline — makes the wait feel alive and shows what's happening */}
+        <div className="mt-8 w-full max-w-xs space-y-2.5">
+          {PIPELINE_STEPS.map((label, i) => (
+            <StatusCard
+              key={label}
+              icon={i < step ? Check : Timer}
+              label={label}
+              status={i < step ? 'ready' : i === step ? 'active' : 'pending'}
+            />
+          ))}
+        </div>
+
         <p className="text-white/50 text-sm mt-6">This may take up to 30 seconds</p>
       </div>
 
@@ -497,7 +717,7 @@ function ProcessingScreen({ service, language, audioBase64, coords, onDone, onCa
           onClick={onCancel}
           className="w-full flex items-center justify-center gap-2
                      bg-white/15 hover:bg-white/25 active:scale-[0.98]
-                     text-white font-semibold py-4 rounded-2xl transition-colors"
+                     text-white font-semibold py-4 rounded-2xl transition-all"
         >
           <X className="w-5 h-5" />
           Cancel
@@ -514,17 +734,19 @@ function ResultScreen({ result, onDone }) {
   const severity = result.severity
 
   const severityStyle =
-    severity === 'CRITICAL' ? 'bg-red-100 text-red-700'      :
-    severity === 'MODERATE' ? 'bg-orange-100 text-orange-700' :
-    severity === 'LOW'      ? 'bg-green-100 text-green-700'   :
+    severity === 'CRITICAL'      ? 'bg-red-100 text-red-700'      :
+    severity === 'URGENT'        ? 'bg-orange-100 text-orange-700' :
+    severity === 'NON_EMERGENCY' ? 'bg-green-100 text-green-700'   :
     'bg-nkwa-50 text-nkwa-700'
 
   if (isPrank) {
     return (
       <Shell>
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
-          <p className="text-5xl">🚫</p>
-          <h1 className="text-2xl font-bold text-ink-900">Prank Detected</h1>
+          <span className="w-20 h-20 rounded-full bg-service-sosBg flex items-center justify-center">
+            <Ban className="w-10 h-10 text-service-sos" strokeWidth={2} />
+          </span>
+          <h1 className="font-display text-2xl font-bold text-ink-900 tracking-tight">Prank detected</h1>
           <p className="text-ink-500 text-sm max-w-xs">
             This call was flagged as a non-emergency. Please only use this service for genuine emergencies.
           </p>
@@ -547,7 +769,7 @@ function ResultScreen({ result, onDone }) {
       <div className="px-6 pt-10 pb-8 flex-1 flex flex-col overflow-y-auto">
 
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-ink-900">Help is on the way</h1>
+          <h1 className="font-display text-2xl font-bold text-ink-900 tracking-tight">Help is on the way</h1>
           <p className="text-ink-500 text-sm mt-1">Dispatcher has been briefed</p>
         </div>
 
@@ -563,7 +785,7 @@ function ResultScreen({ result, onDone }) {
         </div>
 
         {result.landmark_name && (
-          <div className="bg-white rounded-2xl shadow-card p-4 mb-3">
+          <div className="bg-white rounded-2xl border border-nkwa-100 shadow-card p-4 mb-3">
             <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-1">Location identified</p>
             <p className="font-semibold text-ink-900">{result.landmark_name}</p>
             {result.directions_narrative && (
@@ -573,14 +795,14 @@ function ResultScreen({ result, onDone }) {
         )}
 
         {result.first_aid_audio_url && (
-          <div className="bg-white rounded-2xl shadow-card p-4 mb-3">
+          <div className="bg-white rounded-2xl border border-nkwa-100 shadow-card p-4 mb-3">
             <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-2">First-aid audio</p>
             <audio controls src={result.first_aid_audio_url} className="w-full" />
           </div>
         )}
 
         {result.first_aid_script && (
-          <div className="bg-white rounded-2xl shadow-card p-4 mb-6">
+          <div className="bg-white rounded-2xl border border-nkwa-100 shadow-card p-4 mb-6">
             <p className="text-xs text-ink-400 font-medium uppercase tracking-wide mb-1">Instructions</p>
             <p className="text-sm text-ink-700 leading-relaxed">{result.first_aid_script}</p>
           </div>

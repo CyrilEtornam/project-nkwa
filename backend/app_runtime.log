@@ -1,0 +1,16 @@
+INFO:     Started server process [1731]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+[BYPASS] WebSocket event skipped: CALL_RECEIVED (call_id=0d4077f2-9c07-4e29-844f-6b501c8f86d8)
+[BYPASS] WebSocket event skipped: TRANSCRIPTION_READY (call_id=0d4077f2-9c07-4e29-844f-6b501c8f86d8)
+[BYPASS] WebSocket event skipped: TRIAGE_COMPLETE (call_id=0d4077f2-9c07-4e29-844f-6b501c8f86d8)
+[BYPASS] WebSocket event skipped: LOCATION_RESOLVED (call_id=0d4077f2-9c07-4e29-844f-6b501c8f86d8)
+[BYPASS] WebSocket event skipped: BRIEF_READY (call_id=0d4077f2-9c07-4e29-844f-6b501c8f86d8)
+[BYPASS] SNS send_critical_alert skipped: Cardiac arrest near Accra Mall
+[BYPASS] WebSocket event skipped: SNS_ALERT_SENT (call_id=0d4077f2-9c07-4e29-844f-6b501c8f86d8)
+INFO:     102.176.101.12:31174 - "POST /api/v1/calls/initiate HTTP/1.1" 202 Accepted
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [1731]

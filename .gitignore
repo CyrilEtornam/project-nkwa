@@ -1,10 +1,13 @@
 __pycache__/
 *.py[cod]
 .env/
-.env.example
 .env
 test-audio/English/final_payload.json
 .gitignore
 test-audio/English/test_audio_b64.txt
 test-audio/English/payload.json
 frontend/node_modules
+frontend/dist
+dist/
+package-lock.json
+backend/package-lock.json

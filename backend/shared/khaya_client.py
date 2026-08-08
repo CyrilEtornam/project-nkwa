@@ -19,6 +19,18 @@ S3_BUCKET_NAME = os.getenv("S3_BUCKET_NAME", "nkwa-audio")
 KHAYA_API_KEY = os.getenv("KHAYA_API_KEY", "")
 USE_MOCK = os.getenv("USE_MOCK", "true").strip().lower() in {"1", "true", "yes", "on"}
 
+_LANGUAGE_ISO3_MAP: dict[str, str] = {
+    # Normalize all variants to the 2-letter codes Khaya Translation API v2 accepts.
+    # ASR also uses 2-letter codes. TTS uses ISO 639-3 — see _TTS_LANG_MAP below.
+    "en": "en", "eng": "en",
+    "tw": "tw", "twi": "tw",
+    "ee": "ee", "ewe": "ee",
+    "ga": "gaa", "gaa": "gaa",
+    "dag": "dag",
+    "fat": "fat",
+    "kus": "kus",
+}
+
 # Maps first-4-byte magic signatures to (content_type, transcribe_media_format, file_extension)
 _FORMAT_TABLE: dict[bytes, tuple[str, str, str]] = {
     b"RIFF": ("audio/wav",  "wav",  "wav"),
@@ -35,6 +47,22 @@ def detect_audio_format(audio_bytes: bytes) -> tuple[str, str, str]:
     if sig[:3] == b"ID3" or sig[:2] in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2"):
         return "audio/mpeg", "mp3", "mp3"
     return "audio/wav", "wav", "wav"  # safe fallback
+
+
+def normalize_language_code(language: str | None) -> str:
+    if not language:
+        return "en"
+    cleaned = language.strip().lower()
+    return _LANGUAGE_ISO3_MAP.get(cleaned, cleaned)
+
+
+def build_lang_pair(source_lang: str | None, target_lang: str | None = "eng") -> str:
+    return f"{normalize_language_code(source_lang)}-{normalize_language_code(target_lang)}"
+
+
+def _parse_lang_pair(lang_pair: str) -> tuple[str, str]:
+    source, target = lang_pair.split("-", 1)
+    return normalize_language_code(source), normalize_language_code(target)
 
 
 _CACHE: dict[str, Any] = {}
@@ -111,12 +139,15 @@ def _mock_transcript(language: str) -> str:
     return str(data.get("text") or data.get("transcript") or f"Mock transcription for {language}")
 
 
-def _mock_translation(text: str) -> str:
+def _mock_translation(text: str, source_lang: str = "en", target_lang: str = "en") -> str:
+    if source_lang == target_lang:
+        return text
+
     data = _load_mock_json("translate_response.json", {"text": "Mock English translation"})
     translated = data.get("text") or data.get("translation") or data.get("translated_text")
-    if isinstance(translated, str) and translated.strip():
+    if target_lang == "en" and isinstance(translated, str) and translated.strip():
         return translated
-    return f"Mock English translation: {text}"
+    return text
 
 
 def _mock_tts(language: str) -> bytes:
@@ -149,26 +180,37 @@ async def transcribe(audio_bytes: bytes, language: str | None = None, lang: str 
     return transcription
 
 
-async def translate(text: str, source_lang: str | None = None, lang_pair: str | None = None) -> str:
-    resolved_source_lang = source_lang
-    if resolved_source_lang is None and lang_pair:
-        resolved_source_lang = lang_pair.split("-", 1)[0]
-    resolved_source_lang = resolved_source_lang or "en"
+async def translate(
+    text: str,
+    source_lang: str | None = None,
+    lang_pair: str | None = None,
+    target_lang: str | None = "eng",
+) -> str:
+    if lang_pair:
+        resolved_source_lang, resolved_target_lang = _parse_lang_pair(lang_pair)
+        resolved_pair = f"{resolved_source_lang}-{resolved_target_lang}"
+    else:
+        resolved_source_lang = normalize_language_code(source_lang or "eng")
+        resolved_target_lang = normalize_language_code(target_lang or "eng")
+        resolved_pair = f"{resolved_source_lang}-{resolved_target_lang}"
 
-    if resolved_source_lang == "en":
+    if resolved_source_lang == resolved_target_lang:
         return text
 
-    cache_key = _cache_key("translate", resolved_source_lang, text)
+    cache_key = _cache_key("translate", resolved_pair, text)
     cached = _get_cache(cache_key)
     if cached is not None:
         return str(cached)
 
     if USE_MOCK:
-        translated_text = _mock_translation(text)
+        translated_text = _mock_translation(text, resolved_source_lang, resolved_target_lang)
         _set_cache(cache_key, translated_text)
         return translated_text
 
-    translated_text = await _translate_khaya(text, resolved_source_lang, lang_pair)
+    if not text.strip():
+        raise RuntimeError("Cannot translate: transcription is empty")
+
+    translated_text = await _translate_khaya(text, resolved_pair)
     _set_cache(cache_key, translated_text)
     return translated_text
 
@@ -266,14 +308,23 @@ async def _transcribe_khaya(audio_bytes: bytes, language: str, content_type: str
         for key in ("text", "transcript", "transcription"):
             value = payload.get(key)
             if isinstance(value, str):
+                # Khaya ASR returns HTTP 200 with an empty string when it cannot
+                # transcribe (silence, noise, or audio not matching `language`).
+                # Reject it here so the failure surfaces at TRANSCRIBE with a clear
+                # message instead of a confusing 400 MISSING_TEXT at TRANSLATE.
+                if not value.strip():
+                    raise RuntimeError(
+                        f"Khaya ASR returned empty transcription for language '{language}' "
+                        "— audio may be too short, silent, or unclear"
+                    )
                 return value
 
     raise RuntimeError("Khaya ASR response did not contain transcription text")
 
 
-async def _translate_khaya(text: str, source_lang: str, lang_pair: str | None) -> str:
+async def _translate_khaya(text: str, lang_pair: str) -> str:
     headers = {"Ocp-Apim-Subscription-Key": KHAYA_API_KEY}
-    payload = {"in": text, "lang": lang_pair or f"{source_lang}-en"}
+    payload = {"in": text, "lang": lang_pair}
 
     async with httpx.AsyncClient(timeout=60.0) as client:
         response = await client.post(f"{KHAYA_BASE_URL}/v2/translate", json=payload, headers=headers)
@@ -309,14 +360,23 @@ async def _synthesize_english(text: str) -> bytes:
     return await asyncio.to_thread(audio_stream.read)
 
 
+_TTS_LANG_MAP: dict[str, str] = {
+    # TTS v2 requires ISO 639-3 codes; older 2-letter codes return 400.
+    # ASR and Translation accept 2-letter codes, so this mapping is TTS-only.
+    "tw": "twi",
+    "ee": "ewe",
+}
+
+
 async def _synthesize_khaya(text: str, language: str) -> bytes:
+    tts_lang = _TTS_LANG_MAP.get(language, language)
     headers = {
         "Ocp-Apim-Subscription-Key": KHAYA_API_KEY,
         "Accept": "audio/mp3",
     }
     payload = {
         "text": text,
-        "language": language,
+        "language": tts_lang,
         "speaker_id": "female",
         "format": "mp3",
     }
@@ -327,4 +387,12 @@ async def _synthesize_khaya(text: str, language: str) -> bytes:
         return response.content
 
 
-__all__ = ["transcribe", "translate", "synthesize", "detect_audio_format", "USE_MOCK"]
+__all__ = [
+    "transcribe",
+    "translate",
+    "synthesize",
+    "detect_audio_format",
+    "normalize_language_code",
+    "build_lang_pair",
+    "USE_MOCK",
+]
